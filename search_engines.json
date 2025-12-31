@@ -1,35 +1,43 @@
 [
   {
     "name": "Bing",
-    "url": "https://www.bing.com/search?q="
+    "url": "https://www.bing.com/search?q=",
+    "space_delimiter": "+"
   },
   {
     "name": "DuckDuckGo",
-    "url": "https://duckduckgo.com/?q="
+    "url": "https://duckduckgo.com/?q=",
+    "space_delimiter": "+"
   },
   {
     "name": "Google",
-    "url": "https://www.google.com/search?q="
+    "url": "https://www.google.com/search?q=",
+    "space_delimiter": "+"
   },
   {
     "name": "Kagi",
-    "url": "https://kagi.com/search?q="
+    "url": "https://kagi.com/search?q=",
+    "space_delimiter": "+"
   },
   {
     "name": "Mojeek",
-    "url": "https://www.mojeek.com/search?q="
+    "url": "https://www.mojeek.com/search?q=",
+    "space_delimiter": "+"
   },
   {
     "name": "StartPage",
-    "url": "https://www.startpage.com/sp/search?q="
+    "url": "https://www.startpage.com/sp/search?q=",
+    "space_delimiter": "+"
   },
   {
     "name": "Yahoo",
-    "url": "https://search.yahoo.com/search?p="
+    "url": "https://search.yahoo.com/search?p=",
+    "space_delimiter": "+"
   },
   {
     "name": "YouTube",
-    "url": "https://www.youtube.com/results?search_query="
+    "url": "https://www.youtube.com/results?search_query=",
+    "space_delimiter": "+"
   }
 ]
 

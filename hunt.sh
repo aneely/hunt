@@ -20,13 +20,16 @@ load_search_engines_from_json() {
     # Initialize arrays
     SEARCH_ENGINE_NAMES=()
     SEARCH_ENGINE_URLS=()
+    SEARCH_ENGINE_DELIMITERS=()
     
     # Simple JSON parser for our specific structure
-    # Uses sed and grep to extract name and url fields
+    # Uses sed and grep to extract name, url, and space_delimiter fields
     # Extract all name values
     local names=$(grep -o '"name"[[:space:]]*:[[:space:]]*"[^"]*"' "$json_file" | sed 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
     # Extract all url values
     local urls=$(grep -o '"url"[[:space:]]*:[[:space:]]*"[^"]*"' "$json_file" | sed 's/.*"url"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+    # Extract all space_delimiter values (default to "+" if not found)
+    local delimiters=$(grep -o '"space_delimiter"[[:space:]]*:[[:space:]]*"[^"]*"' "$json_file" | sed 's/.*"space_delimiter"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/' || echo "")
     
     # Convert to arrays (one entry per line)
     local name_count=0
@@ -41,6 +44,23 @@ load_search_engines_from_json() {
         url_count=$((url_count + 1))
     done <<< "$urls"
     
+    # Process delimiters - if fewer delimiters than engines, default to "+"
+    local delimiter_count=0
+    while IFS= read -r delimiter; do
+        if [ -n "$delimiter" ]; then
+            SEARCH_ENGINE_DELIMITERS+=("$delimiter")
+        else
+            # Default to "+" if delimiter not specified
+            SEARCH_ENGINE_DELIMITERS+=("+")
+        fi
+        delimiter_count=$((delimiter_count + 1))
+    done <<< "$delimiters"
+    
+    # Ensure we have a delimiter for each engine (default to "+" if missing)
+    while [ ${#SEARCH_ENGINE_DELIMITERS[@]} -lt ${#SEARCH_ENGINE_NAMES[@]} ]; do
+        SEARCH_ENGINE_DELIMITERS+=("+")
+    done
+    
     # Validate we loaded matching counts
     if [ ${#SEARCH_ENGINE_NAMES[@]} -eq 0 ] || [ ${#SEARCH_ENGINE_URLS[@]} -eq 0 ]; then
         echo "Error: No search engines loaded from JSON file" >&2
@@ -49,6 +69,11 @@ load_search_engines_from_json() {
     
     if [ ${#SEARCH_ENGINE_NAMES[@]} -ne ${#SEARCH_ENGINE_URLS[@]} ]; then
         echo "Error: Mismatch between number of names and URLs in JSON file" >&2
+        exit 1
+    fi
+    
+    if [ ${#SEARCH_ENGINE_NAMES[@]} -ne ${#SEARCH_ENGINE_DELIMITERS[@]} ]; then
+        echo "Error: Mismatch between number of names and delimiters in JSON file" >&2
         exit 1
     fi
 }
@@ -159,8 +184,10 @@ if [ "$INTERACTIVE" = true ] && [ "$SERVICES_FLAG" = true ]; then
 fi
 
 # URL encode the search term using bash-native encoding
+# Parameters: $1 = search term string, $2 = space delimiter ("+" or "%20")
 url_encode() {
     local string="$1"
+    local space_delimiter="${2:-%20}"  # Default to %20 if not specified
     local encoded=""
     local i=0
     local len=${#string}
@@ -173,8 +200,8 @@ url_encode() {
                 encoded="${encoded}${char}"
                 ;;
             " ")
-                # Space -> %20
-                encoded="${encoded}%20"
+                # Space -> use provided delimiter (+ or %20)
+                encoded="${encoded}${space_delimiter}"
                 ;;
             *)
                 # All other characters - encode as %XX using od
@@ -193,8 +220,6 @@ url_encode() {
     
     echo "$encoded"
 }
-
-ENCODED_TERM=$(url_encode "$SEARCH_TERM")
 
 # Search engines are loaded from JSON file at script startup
 
@@ -348,7 +373,11 @@ main() {
     for idx in "${SELECTED_INDICES[@]}"; do
         engine="${SEARCH_ENGINE_NAMES[$idx]}"
         url_base="${SEARCH_ENGINE_URLS[$idx]}"
-        url="${url_base}${ENCODED_TERM}"
+        delimiter="${SEARCH_ENGINE_DELIMITERS[$idx]}"
+        
+        # Encode search term with engine-specific delimiter
+        encoded_term=$(url_encode "$SEARCH_TERM" "$delimiter")
+        url="${url_base}${encoded_term}"
         
         echo "Opening $engine..."
         open "$url" 2>/dev/null
