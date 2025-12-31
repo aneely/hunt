@@ -46,6 +46,20 @@
 - Delays help ensure browser processes each URL as a separate tab
 - **Known Limitation**: If browser isn't running or has issues, some tabs might not open
 
+### Code Organization & Architecture
+- **Modular Function-Based Approach**: Split functionality into discrete functions to contain separate pieces of functionality as modules within the script
+- **Standard Practice**: When adding new features or refactoring, extract logical units of work into well-defined functions
+- **Benefits**: 
+  - Improved code readability and maintainability
+  - Easier testing and debugging of individual components
+  - Better separation of concerns
+  - Reusable code blocks
+- **Current Functions**:
+  - `url_encode()` - Handles URL encoding using Python
+  - `is_service_selection()` - Validates if an argument is a valid service selection
+  - `resolve_service_selection()` - Resolves a service name or number to an array index
+  - `parse_service_selections()` - Parses and validates service selections, populates SELECTED_INDICES
+
 ## Architecture
 
 ### File Structure
