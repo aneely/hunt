@@ -84,6 +84,28 @@
   - Adding/removing files in working directory
   - Viewing git status and history
 
+### Bash Commands - Destructive Operations Policy
+- **CRITICAL**: AI assistants working on this project must NOT execute potentially destructive bash commands without explicit user confirmation
+- **Potentially destructive commands include**:
+  - File deletion commands (`rm`, `rm -rf`, `rmdir`)
+  - File overwrite operations that could lose data (`>`, `>>` to existing files without backup)
+  - System modification commands (`sudo`, system configuration changes)
+  - Commands that modify or delete project files outside of normal editing workflows
+  - Commands that could affect system settings or installed software
+  - Commands that could result in data loss or irreversible changes
+- **Required workflow**: Before executing any potentially destructive bash command, the AI assistant must:
+  1. Clearly explain what the command will do
+  2. Show what files or system components will be affected
+  3. Explain the potential consequences
+  4. Wait for explicit user confirmation before proceeding
+- **Safe operations** (can be done without confirmation):
+  - Reading files (`cat`, `read_file`, `grep` for reading)
+  - Listing directory contents (`ls`, `list_dir`)
+  - Viewing git status and history
+  - Creating new files (when explicitly requested)
+  - Editing files using safe editing tools (when explicitly requested)
+  - Running the hunt.sh script for testing (non-destructive execution)
+
 ## Architecture
 
 ### File Structure
