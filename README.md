@@ -204,7 +204,7 @@ Planned features (see `PROJECT_CONTEXT.md` for details):
 
 ## License
 
-This project is open source. Feel free to use and modify as needed.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Contributing
 
