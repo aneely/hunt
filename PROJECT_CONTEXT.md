@@ -63,6 +63,27 @@
   - `resolve_service_selection()` - Resolves a service name or number to an array index
   - `parse_service_selections()` - Parses and validates service selections, populates SELECTED_INDICES
 
+## Development Guidelines
+
+### Git Operations - Destructive Changes Policy
+- **CRITICAL**: AI assistants working on this project must NOT commit destructive git changes without explicit user confirmation
+- **Destructive changes include**:
+  - Force pushes (`git push --force`, `git push -f`)
+  - Hard resets (`git reset --hard`)
+  - Branch deletions (`git branch -D`)
+  - Rewriting history (`git rebase` on shared branches, `git commit --amend` on pushed commits)
+  - Any operation that could result in data loss or overwrite existing commits
+- **Required workflow**: Before executing any potentially destructive git operation, the AI assistant must:
+  1. Clearly explain what the operation will do
+  2. Show the user what will be affected
+  3. Wait for explicit user confirmation before proceeding
+- **Safe operations** (can be done without confirmation):
+  - Regular commits (`git commit`)
+  - Creating new branches
+  - Merging branches (non-destructive merges)
+  - Adding/removing files in working directory
+  - Viewing git status and history
+
 ## Architecture
 
 ### File Structure
