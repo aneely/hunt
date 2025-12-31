@@ -8,7 +8,7 @@
 
 ### MVP Implementation (Completed)
 - ✅ Basic bash script (`hunt.sh`) that accepts a search term
-- ✅ URL encoding using Python's `urllib.parse`
+- ✅ URL encoding using bash-native implementation
 - ✅ Support for 8 search engines (initial MVP scope)
 - ✅ Opens URLs sequentially with delays to ensure separate browser tabs
 - ✅ Bash 3.2 compatibility (macOS default)
@@ -36,9 +36,10 @@
 - **Impact**: All array operations must use index-based iteration
 
 ### URL Encoding
-- Uses Python 3's `urllib.parse.quote()` for robust URL encoding
-- Handles spaces, special characters, and Unicode properly
-- Requires Python 3 to be installed (standard on macOS)
+- Uses bash-native URL encoding implementation
+- Handles spaces, special characters, and multi-byte UTF-8 characters
+- Uses `od` command to convert characters to hex representation
+- No external dependencies required (pure bash solution)
 
 ### Browser Opening Strategy
 - Uses macOS `open` command (native, works with default browser)
@@ -55,7 +56,7 @@
   - Better separation of concerns
   - Reusable code blocks
 - **Current Functions**:
-  - `url_encode()` - Handles URL encoding using Python
+  - `url_encode()` - Handles URL encoding using bash-native implementation (no external dependencies)
   - `is_service_selection()` - Validates if an argument is a valid service selection
   - `resolve_service_selection()` - Resolves a service name or number to an array index
   - `parse_service_selections()` - Parses and validates service selections, populates SELECTED_INDICES
@@ -78,7 +79,7 @@ hunt/
    - If `-s` flag: Parse service selections (numbers/names) from command line
    - Otherwise: Select all engines by default
 3. **Validation**: Ensure search term is provided and validate service selections
-4. **URL Encoding**: Encode the search term using Python's `urllib.parse`
+4. **URL Encoding**: Encode the search term using bash-native URL encoding
 5. **URL Construction**: For each selected engine, construct full URL with encoded query
 6. **Browser Opening**: Open each URL sequentially with 0.3s delays
 7. **Summary**: Display confirmation of opened searches
@@ -207,8 +208,8 @@ Examples:
 ## Dependencies
 
 - **Bash**: 3.2+ (macOS default is sufficient)
-- **Python 3**: Required for URL encoding (standard on macOS)
 - **macOS `open` command**: Native command for opening URLs
+- **od command**: Used for URL encoding (standard Unix utility, available on macOS)
 
 ## Testing Notes
 

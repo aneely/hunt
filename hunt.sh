@@ -117,9 +117,40 @@ if [ "$INTERACTIVE" = true ] && [ "$SERVICES_FLAG" = true ]; then
     exit 1
 fi
 
-# URL encode the search term using Python for robust encoding
+# URL encode the search term using bash-native encoding
 url_encode() {
-    python3 -c "import urllib.parse; print(urllib.parse.quote('$1'))"
+    local string="$1"
+    local encoded=""
+    local i=0
+    local len=${#string}
+    
+    while [ $i -lt $len ]; do
+        local char="${string:$i:1}"
+        case "$char" in
+            [a-zA-Z0-9._~-])
+                # Safe characters - no encoding needed
+                encoded="${encoded}${char}"
+                ;;
+            " ")
+                # Space -> %20
+                encoded="${encoded}%20"
+                ;;
+            *)
+                # All other characters - encode as %XX using od
+                # Convert character to its ASCII/UTF-8 hex value
+                local hex=$(echo -n "$char" | od -A n -t x1 | tr -d ' \n' | tr '[:lower:]' '[:upper:]')
+                # Format as %XX for each byte (handles multi-byte UTF-8)
+                local j=0
+                while [ $j -lt ${#hex} ]; do
+                    encoded="${encoded}%${hex:$j:2}"
+                    j=$((j + 2))
+                done
+                ;;
+        esac
+        i=$((i + 1))
+    done
+    
+    echo "$encoded"
 }
 
 ENCODED_TERM=$(url_encode "$SEARCH_TERM")

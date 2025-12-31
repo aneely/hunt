@@ -27,7 +27,6 @@
 
 - macOS (uses `open` command)
 - Bash 3.2+ (default on macOS)
-- Python 3 (for URL encoding - standard on macOS)
 
 ## Installation
 
@@ -154,7 +153,7 @@ You can specify engines by:
 
 1. **Argument Parsing**: The script parses command-line flags (`-i`, `-s`) and service selections
 2. **Service Selection**: In interactive mode, prompts for selection. With `-s` flag, validates service names/numbers automatically
-3. **Input Processing**: The script takes your search term and URL-encodes it using Python's `urllib.parse`
+3. **Input Processing**: The script takes your search term and URL-encodes it using a bash-native implementation
 4. **URL Construction**: For each selected search engine, it constructs the appropriate search URL with your encoded query
 5. **Browser Opening**: Uses macOS's `open` command to open each URL in your default browser
 6. **Tab Management**: Opens URLs sequentially with small delays to ensure each opens in a separate tab
@@ -196,8 +195,8 @@ Planned features (see `PROJECT_CONTEXT.md` for details):
 
 **Script doesn't work:**
 - Ensure the script is executable: `chmod +x hunt.sh`
-- Check that Python 3 is installed: `python3 --version`
 - Verify you're on macOS (the `open` command is macOS-specific)
+- Check that standard Unix utilities are available (`od` command for URL encoding)
 
 ## License
 
