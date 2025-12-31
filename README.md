@@ -6,6 +6,8 @@
 
 - 🔍 Search across 8 popular search engines with a single command
 - 🎯 Interactive mode to select specific search engines
+- 🎛️ Command-line service selection with `-s`/`--services` flag
+- 📝 Support for service names or numbers (mix and match)
 - 🌐 Opens results in separate browser tabs
 - 🚀 Fast and lightweight - simple bash script
 - 🍎 macOS optimized (uses native `open` command)
@@ -85,6 +87,47 @@ You can:
 - Enter multiple numbers: `1 3 5` (searches Bing, Google, and Mojeek)
 - Enter `9` to select all search engines
 
+### Services Flag Mode
+
+Select specific search engines directly from the command line without interactive prompts:
+
+```bash
+./hunt.sh -s SELECTION ... "your search term"
+# or
+./hunt.sh --services SELECTION ... "your search term"
+```
+
+You can specify engines by:
+- **Number**: `1` through `8` (corresponds to the numbered list above), or `9` for all
+- **Name**: The exact service name (case-insensitive), e.g., `Bing`, `Google`, `YouTube`
+- **"all"**: Select all search engines
+
+**Examples:**
+
+```bash
+# Select by numbers
+./hunt.sh -s 1 3 5 "machine learning"
+# Searches: Bing (1), Google (3), Mojeek (5)
+
+# Select by names
+./hunt.sh -s Bing Google "machine learning"
+# Searches: Bing and Google
+
+# Mix numbers and names
+./hunt.sh -s 1 Google 5 "machine learning"
+# Searches: Bing (1), Google, Mojeek (5)
+
+# Select all engines
+./hunt.sh -s all "machine learning"
+# or
+./hunt.sh -s 9 "machine learning"
+```
+
+**Note**: The script automatically detects when service selections end and the search term begins. If you need to be explicit, you can use `--` as a separator:
+```bash
+./hunt.sh -s Bing Google -- "test search"
+```
+
 ### Examples
 
 ```bash
@@ -94,22 +137,36 @@ You can:
 # Interactive mode - select specific engines
 ./hunt.sh -i "bash scripting"
 
+# Services flag - select by numbers
+./hunt.sh -s 1 3 5 "python tutorials"
+
+# Services flag - select by names
+./hunt.sh -s Bing Google YouTube "python tutorials"
+
+# Services flag - mix numbers and names
+./hunt.sh -s 1 Google 5 "python tutorials"
+
 # Search with special characters (automatically URL-encoded)
 ./hunt.sh "C++ programming"
 ```
 
 ## How It Works
 
-1. **Input Processing**: The script takes your search term and URL-encodes it using Python's `urllib.parse`
-2. **URL Construction**: For each search engine, it constructs the appropriate search URL with your encoded query
-3. **Browser Opening**: Uses macOS's `open` command to open each URL in your default browser
-4. **Tab Management**: Opens URLs sequentially with small delays to ensure each opens in a separate tab
+1. **Argument Parsing**: The script parses command-line flags (`-i`, `-s`) and service selections
+2. **Service Selection**: In interactive mode, prompts for selection. With `-s` flag, validates service names/numbers automatically
+3. **Input Processing**: The script takes your search term and URL-encodes it using Python's `urllib.parse`
+4. **URL Construction**: For each selected search engine, it constructs the appropriate search URL with your encoded query
+5. **Browser Opening**: Uses macOS's `open` command to open each URL in your default browser
+6. **Tab Management**: Opens URLs sequentially with small delays to ensure each opens in a separate tab
 
 ## Technical Details
 
 - **Bash Compatibility**: Uses parallel arrays instead of associative arrays for compatibility with bash 3.2 (macOS default)
+- **Service Name Matching**: Case-insensitive matching for service names (e.g., `bing`, `Bing`, `BING` all work)
+- **Automatic Detection**: The `-s` flag automatically detects when service selections end and the search term begins
 - **URL Encoding**: Handles spaces, special characters, and Unicode properly
 - **Sequential Opening**: Opens URLs one at a time with 0.3 second delays to ensure reliable tab creation
+- **Duplicate Handling**: Automatically removes duplicate service selections
 
 ## Project Structure
 
