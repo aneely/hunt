@@ -14,7 +14,7 @@
 - ✅ Bash 3.2 compatibility (macOS default)
 - ✅ Interactive mode (`-i`/`--interactive`) for selecting search engines
 - ✅ Services flag mode (`-s`/`--services`) for command-line service selection
-- ✅ Support for service selection by number (1-8, 9 for all) or name (case-insensitive)
+- ✅ Support for service selection by number (0 for all, 1-8 for engines) or name (case-insensitive)
 - ✅ Automatic detection of search term when using services flag
 - ✅ Duplicate service selection handling
 
@@ -32,13 +32,14 @@
 
 ### Bash Version Compatibility
 - **Critical Decision**: macOS ships with bash 3.2.57 by default, which does NOT support associative arrays (requires bash 4.0+)
-- **Solution**: Use parallel arrays (`SEARCH_ENGINE_NAMES` and `SEARCH_ENGINE_URLS`) instead of associative arrays
+- **Solution**: Use parallel arrays (`SEARCH_ENGINE_NAMES`, `SEARCH_ENGINE_URLS`, and `SEARCH_ENGINE_DELIMITERS`) instead of associative arrays
 - **Impact**: All array operations must use index-based iteration
 
 ### URL Encoding
 - Uses bash-native URL encoding implementation
 - Handles spaces, special characters, and multi-byte UTF-8 characters
 - Uses `od` command to convert characters to hex representation
+- Supports engine-specific space delimiters (`+` or `%20`) configured per search engine
 - No external dependencies required (pure bash solution)
 
 ### Browser Opening Strategy
@@ -56,8 +57,8 @@
   - Better separation of concerns
   - Reusable code blocks
 - **Current Functions**:
-  - `load_search_engines_from_json()` - Loads search engine definitions from JSON file
-  - `url_encode()` - Handles URL encoding using bash-native implementation (no external dependencies)
+  - `load_search_engines_from_json()` - Loads search engine definitions from JSON file (name, url, space_delimiter)
+  - `url_encode()` - Handles URL encoding using bash-native implementation with configurable space delimiter (no external dependencies)
   - `is_service_selection()` - Validates if an argument is a valid service selection
   - `resolve_service_selection()` - Resolves a service name or number to an array index
   - `parse_service_selections()` - Parses and validates service selections, populates SELECTED_INDICES
@@ -91,19 +92,25 @@ hunt/
 **JSON-Based Configuration:**
 - Search engines are defined in `search_engines.json` file
 - Script loads engines from JSON at startup using `load_search_engines_from_json()` function
-- JSON structure: array of objects with `name` and `url` fields
-- Parsed into parallel arrays: `SEARCH_ENGINE_NAMES` and `SEARCH_ENGINE_URLS`
+- JSON structure: array of objects with `name`, `url`, and `space_delimiter` fields
+  - `name`: Display name of the search engine
+  - `url`: Base search URL with query parameter (e.g., `https://www.google.com/search?q=`)
+  - `space_delimiter`: Character(s) to use for spaces in URLs (`+` or `%20`, defaults to `+` if not specified)
+- Parsed into parallel arrays: `SEARCH_ENGINE_NAMES`, `SEARCH_ENGINE_URLS`, and `SEARCH_ENGINE_DELIMITERS`
 - Iterate using: `for i in "${!SEARCH_ENGINE_NAMES[@]}"`
 
 **URL Construction:**
 - Base URL from `SEARCH_ENGINE_URLS[$i]`
-- Append encoded search term: `url="${url_base}${ENCODED_TERM}"`
-- Note: Different engines use different query parameter names (`q`, `p`, `search_query`)
+- Space delimiter from `SEARCH_ENGINE_DELIMITERS[$i]` (used during URL encoding)
+- Encode search term with engine-specific delimiter: `encoded_term=$(url_encode "$SEARCH_TERM" "$delimiter")`
+- Append encoded search term: `url="${url_base}${encoded_term}"`
+- Note: Different engines use different query parameter names (`q`, `p`, `search_query`) and may prefer different space delimiters
 
 **Service Selection Logic:**
 - Service names loaded from JSON file at script startup for validation during argument parsing
 - `is_service_selection()` helper function validates if argument is a valid service
 - Supports numbers (0 for all, 1-8 for engines), service names (case-insensitive), or "all"
+- Number validation: accepts 0-8 (0 = all engines, 1-8 = specific engine indices)
 - Automatic detection: stops collecting services when encountering non-service argument
 - Explicit separator: `--` can be used to explicitly separate services from search term
 - Duplicate removal: automatically removes duplicate service selections
@@ -133,6 +140,24 @@ hunt/
 6. **Service Categories**: Group services by category and allow category-based selection
 7. **Custom Delays**: Make delay configurable or adaptive
 8. **Service Aliases**: Support shorter aliases for service names (e.g., `ddg` for DuckDuckGo)
+9. **Browser Extension**: Create a browser extension (Chrome, Firefox, Safari) that provides quick access to Hunt from the browser toolbar. Users could select text on a webpage and search across engines, or use a popup interface to enter search terms. This would make Hunt accessible without opening a terminal.
+10. **System Path Integration**: Package the script for easy installation as a system command. Create an installation script or Makefile that:
+    - Copies `hunt.sh` to `/usr/local/bin/hunt` (or `~/.local/bin/hunt`)
+    - Ensures the script is executable
+    - Optionally creates a symlink
+    - Allows users to run `hunt "search term"` from anywhere instead of `./hunt.sh`
+11. **Homebrew Distribution**: Create a Homebrew formula for macOS users to install Hunt via `brew install hunt`. This would:
+    - Provide a standard installation method for macOS users
+    - Handle path setup automatically
+    - Enable easy updates via `brew upgrade hunt`
+    - Follow Homebrew conventions for formula structure and dependencies
+12. **Go Port**: Port the project to Go for cross-platform distribution as a single portable binary. Benefits include:
+    - Single binary distribution (no dependencies)
+    - Cross-platform support (macOS, Linux, Windows)
+    - Better performance and error handling
+    - Easier distribution and installation
+    - No bash version compatibility concerns
+    - Could maintain feature parity with bash version while adding platform-specific optimizations
 
 ## Development History
 
@@ -145,7 +170,7 @@ hunt/
 
 ### Interactive Mode Implementation
 - Added `-i`/`--interactive` flag for user-friendly service selection
-- Implemented numbered menu system (1-8 for engines, 9 for all)
+- Implemented numbered menu system (0 for all, 1-8 for engines)
 - Added input validation and error handling for invalid selections
 
 ### Services Flag Implementation
@@ -164,6 +189,8 @@ hunt/
 - JSON structure allows for easier maintenance and future expansion
 - Script automatically loads engines from JSON at startup
 - Uses simple grep/sed-based JSON parser (bash 3.2 compatible, no external dependencies)
+- Added support for `space_delimiter` field in JSON to allow engine-specific space encoding (defaults to `+` if not specified)
+- Populates three parallel arrays: `SEARCH_ENGINE_NAMES`, `SEARCH_ENGINE_URLS`, and `SEARCH_ENGINE_DELIMITERS`
 
 ### Key Debugging Moments
 - **Issue**: Only YouTube (last in array) was opening
@@ -204,7 +231,7 @@ Displays numbered menu for selecting specific engines.
 # Select all
 ./hunt.sh -s all "search term"
 # or
-./hunt.sh -s 9 "search term"
+./hunt.sh -s 0 "search term"
 ```
 
 Examples:

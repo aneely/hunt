@@ -68,6 +68,7 @@ When you run in interactive mode, you'll see a numbered list of search engines:
 ```
 Select search engines to use (enter numbers, separated by spaces):
 
+  0) All search engines
   1) Bing
   2) DuckDuckGo
   3) Google
@@ -76,7 +77,6 @@ Select search engines to use (enter numbers, separated by spaces):
   6) StartPage
   7) Yahoo
   8) YouTube
-  9) All search engines
 
 Enter selection(s):
 ```
@@ -84,7 +84,7 @@ Enter selection(s):
 You can:
 - Enter a single number: `3` (searches only Google)
 - Enter multiple numbers: `1 3 5` (searches Bing, Google, and Mojeek)
-- Enter `9` to select all search engines
+- Enter `0` to select all search engines
 
 ### Services Flag Mode
 
@@ -97,7 +97,7 @@ Select specific search engines directly from the command line without interactiv
 ```
 
 You can specify engines by:
-- **Number**: `1` through `8` (corresponds to the numbered list above), or `9` for all
+- **Number**: `0` for all, or `1` through `8` (corresponds to the numbered list above)
 - **Name**: The exact service name (case-insensitive), e.g., `Bing`, `Google`, `YouTube`
 - **"all"**: Select all search engines
 
@@ -119,7 +119,7 @@ You can specify engines by:
 # Select all engines
 ./hunt.sh -s all "machine learning"
 # or
-./hunt.sh -s 9 "machine learning"
+./hunt.sh -s 0 "machine learning"
 ```
 
 **Note**: The script automatically detects when service selections end and the search term begins. If you need to be explicit, you can use `--` as a separator:
@@ -186,6 +186,10 @@ Planned features (see `PROJECT_CONTEXT.md` for details):
 - Browser detection and optimization
 - Service category selection
 - Better error handling
+- **Browser Extension**: Create a browser extension for quick access from the browser toolbar
+- **System Path Integration**: Package the script for easy installation as a system command (e.g., `hunt` instead of `./hunt.sh`)
+- **Homebrew Distribution**: Create a Homebrew formula for easy installation via `brew install hunt`
+- **Go Port**: Port the project to Go for cross-platform distribution as a single portable binary
 
 ## Troubleshooting
 
