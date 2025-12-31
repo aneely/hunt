@@ -22,10 +22,10 @@ is_service_selection() {
     if [ "$(echo "$arg" | tr '[:upper:]' '[:lower:]')" = "all" ]; then
         return 0
     fi
-    # Check if it's a number 1-9
+    # Check if it's a number 0-8 (0 for all, 1-8 for engines)
     if [[ "$arg" =~ ^[0-9]+$ ]]; then
         local num=$((arg))
-        if [ "$num" -ge 1 ] && [ "$num" -le 9 ]; then
+        if [ "$num" -ge 0 ] && [ "$num" -le 8 ]; then
             return 0
         fi
     fi
@@ -107,7 +107,7 @@ if [ -z "$SEARCH_TERM" ]; then
     echo ""
     echo "Options:"
     echo "  -i, --interactive         Interactive mode to select search engines"
-    echo "  -s, --services SELECTION Specify search engines by number (1-8, 9 for all) or name"
+    echo "  -s, --services SELECTION Specify search engines by number (0 for all, 1-8 for engines) or name"
     exit 1
 fi
 
@@ -142,7 +142,6 @@ SEARCH_ENGINE_URLS=(
 # Returns -1 if not found
 resolve_service_selection() {
     local selection="$1"
-    local all_option=$((${#SEARCH_ENGINE_NAMES[@]} + 1))
     
     # Check if it's "all" option
     if [ "$selection" = "all" ] || [ "$selection" = "All" ] || [ "$selection" = "ALL" ]; then
@@ -151,13 +150,14 @@ resolve_service_selection() {
         return
     fi
     
-    # Check if it's a number (for "all" option)
+    # Check if it's a number
     if [[ "$selection" =~ ^[0-9]+$ ]]; then
-        if [ "$selection" -eq "$all_option" ]; then
+        # Check if it's 0 (all option)
+        if [ "$selection" -eq 0 ]; then
             echo "all"
             return
         fi
-        # Convert 1-indexed to 0-indexed
+        # Convert 1-indexed to 0-indexed (1-8 map to array indices 0-7)
         local idx=$((selection - 1))
         if [ "$idx" -ge 0 ] && [ "$idx" -lt "${#SEARCH_ENGINE_NAMES[@]}" ]; then
             echo "$idx"
@@ -227,15 +227,15 @@ main() {
         echo "Select search engines to use (enter numbers, separated by spaces):"
         echo ""
         
+        # Display "all" option first (0)
+        echo "  0) All search engines"
+        
         # Display list of engines with numbers (1-indexed for user)
         for i in "${!SEARCH_ENGINE_NAMES[@]}"; do
             num=$((i + 1))
             echo "  $num) ${SEARCH_ENGINE_NAMES[$i]}"
         done
         
-        # Display "all" option (0-indexed would be array length + 1)
-        all_option=$((${#SEARCH_ENGINE_NAMES[@]} + 1))
-        echo "  $all_option) All search engines"
         echo ""
         echo -n "Enter selection(s): "
         read -r user_input
