@@ -3,17 +3,58 @@
 # hunt.sh - Meta-search CLI tool
 # Opens a search term across multiple search engines simultaneously
 
-# Define search engines early (needed for service name validation during parsing)
-SEARCH_ENGINE_NAMES=(
-    "Bing"
-    "DuckDuckGo"
-    "Google"
-    "Kagi"
-    "Mojeek"
-    "StartPage"
-    "Yahoo"
-    "YouTube"
-)
+# Get the directory where the script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SEARCH_ENGINES_JSON="${SCRIPT_DIR}/search_engines.json"
+
+# Function to load search engines from JSON file
+load_search_engines_from_json() {
+    local json_file="$1"
+    
+    # Check if JSON file exists
+    if [ ! -f "$json_file" ]; then
+        echo "Error: Search engines JSON file not found: $json_file" >&2
+        exit 1
+    fi
+    
+    # Initialize arrays
+    SEARCH_ENGINE_NAMES=()
+    SEARCH_ENGINE_URLS=()
+    
+    # Simple JSON parser for our specific structure
+    # Uses sed and grep to extract name and url fields
+    # Extract all name values
+    local names=$(grep -o '"name"[[:space:]]*:[[:space:]]*"[^"]*"' "$json_file" | sed 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+    # Extract all url values
+    local urls=$(grep -o '"url"[[:space:]]*:[[:space:]]*"[^"]*"' "$json_file" | sed 's/.*"url"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+    
+    # Convert to arrays (one entry per line)
+    local name_count=0
+    while IFS= read -r name; do
+        [ -n "$name" ] && SEARCH_ENGINE_NAMES+=("$name")
+        name_count=$((name_count + 1))
+    done <<< "$names"
+    
+    local url_count=0
+    while IFS= read -r url; do
+        [ -n "$url" ] && SEARCH_ENGINE_URLS+=("$url")
+        url_count=$((url_count + 1))
+    done <<< "$urls"
+    
+    # Validate we loaded matching counts
+    if [ ${#SEARCH_ENGINE_NAMES[@]} -eq 0 ] || [ ${#SEARCH_ENGINE_URLS[@]} -eq 0 ]; then
+        echo "Error: No search engines loaded from JSON file" >&2
+        exit 1
+    fi
+    
+    if [ ${#SEARCH_ENGINE_NAMES[@]} -ne ${#SEARCH_ENGINE_URLS[@]} ]; then
+        echo "Error: Mismatch between number of names and URLs in JSON file" >&2
+        exit 1
+    fi
+}
+
+# Load search engines from JSON file
+load_search_engines_from_json "$SEARCH_ENGINES_JSON"
 
 # Helper function to check if an argument looks like a service selection
 is_service_selection() {
@@ -155,19 +196,7 @@ url_encode() {
 
 ENCODED_TERM=$(url_encode "$SEARCH_TERM")
 
-# Search engine names already defined above for parsing
-# Define search engine URLs
-
-SEARCH_ENGINE_URLS=(
-    "https://www.bing.com/search?q="
-    "https://duckduckgo.com/?q="
-    "https://www.google.com/search?q="
-    "https://kagi.com/search?q="
-    "https://www.mojeek.com/search?q="
-    "https://www.startpage.com/sp/search?q="
-    "https://search.yahoo.com/search?p="
-    "https://www.youtube.com/results?search_query="
-)
+# Search engines are loaded from JSON file at script startup
 
 # Function to resolve a service name or number to an index
 # Returns -1 if not found

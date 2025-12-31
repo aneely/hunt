@@ -56,6 +56,7 @@
   - Better separation of concerns
   - Reusable code blocks
 - **Current Functions**:
+  - `load_search_engines_from_json()` - Loads search engine definitions from JSON file
   - `url_encode()` - Handles URL encoding using bash-native implementation (no external dependencies)
   - `is_service_selection()` - Validates if an argument is a valid service selection
   - `resolve_service_selection()` - Resolves a service name or number to an array index
@@ -67,6 +68,7 @@
 ```
 hunt/
 ├── hunt.sh                 # Main executable script
+├── search_engines.json    # Search engine definitions (names and URLs)
 ├── README.md               # User-facing documentation
 ├── initial-sketch.md       # Original project specification with all service examples
 └── PROJECT_CONTEXT.md      # This file - project documentation
@@ -86,12 +88,12 @@ hunt/
 
 ### Key Implementation Details
 
-**Parallel Arrays Pattern:**
-```bash
-SEARCH_ENGINE_NAMES=(...)
-SEARCH_ENGINE_URLS=(...)
-# Iterate using: for i in "${!SEARCH_ENGINE_NAMES[@]}"
-```
+**JSON-Based Configuration:**
+- Search engines are defined in `search_engines.json` file
+- Script loads engines from JSON at startup using `load_search_engines_from_json()` function
+- JSON structure: array of objects with `name` and `url` fields
+- Parsed into parallel arrays: `SEARCH_ENGINE_NAMES` and `SEARCH_ENGINE_URLS`
+- Iterate using: `for i in "${!SEARCH_ENGINE_NAMES[@]}"`
 
 **URL Construction:**
 - Base URL from `SEARCH_ENGINE_URLS[$i]`
@@ -99,9 +101,9 @@ SEARCH_ENGINE_URLS=(...)
 - Note: Different engines use different query parameter names (`q`, `p`, `search_query`)
 
 **Service Selection Logic:**
-- Service names defined early in script for validation during argument parsing
+- Service names loaded from JSON file at script startup for validation during argument parsing
 - `is_service_selection()` helper function validates if argument is a valid service
-- Supports numbers (1-8, 9 for all), service names (case-insensitive), or "all"
+- Supports numbers (0 for all, 1-8 for engines), service names (case-insensitive), or "all"
 - Automatic detection: stops collecting services when encountering non-service argument
 - Explicit separator: `--` can be used to explicitly separate services from search term
 - Duplicate removal: automatically removes duplicate service selections
@@ -154,6 +156,14 @@ SEARCH_ENGINE_URLS=(...)
 - Added support for explicit `--` separator
 - Implemented duplicate removal for service selections
 - Moved service name definitions early in script for validation during argument parsing
+
+### JSON-Based Configuration Implementation
+- Extracted search engine definitions into `search_engines.json` file
+- Created `load_search_engines_from_json()` function to parse JSON and populate arrays
+- Removed hardcoded search engine arrays from script
+- JSON structure allows for easier maintenance and future expansion
+- Script automatically loads engines from JSON at startup
+- Uses simple grep/sed-based JSON parser (bash 3.2 compatible, no external dependencies)
 
 ### Key Debugging Moments
 - **Issue**: Only YouTube (last in array) was opening
