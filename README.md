@@ -1,0 +1,152 @@
+# Hunt - Meta-Search CLI Tool
+
+**Hunt** is a command-line tool that opens a search query across multiple search engines simultaneously in your default browser. Search once, get results from multiple engines in separate browser tabs.
+
+## Features
+
+- 🔍 Search across 8 popular search engines with a single command
+- 🎯 Interactive mode to select specific search engines
+- 🌐 Opens results in separate browser tabs
+- 🚀 Fast and lightweight - simple bash script
+- 🍎 macOS optimized (uses native `open` command)
+
+## Supported Search Engines
+
+1. Bing
+2. DuckDuckGo
+3. Google
+4. Kagi
+5. Mojeek
+6. StartPage
+7. Yahoo
+8. YouTube
+
+## Requirements
+
+- macOS (uses `open` command)
+- Bash 3.2+ (default on macOS)
+- Python 3 (for URL encoding - standard on macOS)
+
+## Installation
+
+1. Clone or download this repository
+2. Make the script executable:
+   ```bash
+   chmod +x hunt.sh
+   ```
+
+## Usage
+
+### Basic Usage
+
+Search across all search engines:
+
+```bash
+./hunt.sh "your search term"
+```
+
+Example:
+```bash
+./hunt.sh "machine learning algorithms"
+```
+
+This will open 8 browser tabs, one for each search engine with your search query.
+
+### Interactive Mode
+
+Select specific search engines to use:
+
+```bash
+./hunt.sh -i "your search term"
+# or
+./hunt.sh --interactive "your search term"
+```
+
+When you run in interactive mode, you'll see a numbered list of search engines:
+
+```
+Select search engines to use (enter numbers, separated by spaces):
+
+  1) Bing
+  2) DuckDuckGo
+  3) Google
+  4) Kagi
+  5) Mojeek
+  6) StartPage
+  7) Yahoo
+  8) YouTube
+  9) All search engines
+
+Enter selection(s):
+```
+
+You can:
+- Enter a single number: `3` (searches only Google)
+- Enter multiple numbers: `1 3 5` (searches Bing, Google, and Mojeek)
+- Enter `9` to select all search engines
+
+### Examples
+
+```bash
+# Search all engines for "python tutorials"
+./hunt.sh "python tutorials"
+
+# Interactive mode - select specific engines
+./hunt.sh -i "bash scripting"
+
+# Search with special characters (automatically URL-encoded)
+./hunt.sh "C++ programming"
+```
+
+## How It Works
+
+1. **Input Processing**: The script takes your search term and URL-encodes it using Python's `urllib.parse`
+2. **URL Construction**: For each search engine, it constructs the appropriate search URL with your encoded query
+3. **Browser Opening**: Uses macOS's `open` command to open each URL in your default browser
+4. **Tab Management**: Opens URLs sequentially with small delays to ensure each opens in a separate tab
+
+## Technical Details
+
+- **Bash Compatibility**: Uses parallel arrays instead of associative arrays for compatibility with bash 3.2 (macOS default)
+- **URL Encoding**: Handles spaces, special characters, and Unicode properly
+- **Sequential Opening**: Opens URLs one at a time with 0.3 second delays to ensure reliable tab creation
+
+## Project Structure
+
+```
+hunt/
+├── hunt.sh              # Main executable script
+├── README.md            # This file
+├── PROJECT_CONTEXT.md   # Detailed project documentation
+└── initial-sketch.md   # Original project specification
+```
+
+## Future Enhancements
+
+Planned features (see `PROJECT_CONTEXT.md` for details):
+
+- Additional service categories (Reddit, StackOverflow, Wikipedia, etc.)
+- Configuration file for custom service definitions
+- Browser detection and optimization
+- Service category selection
+- Better error handling
+
+## Troubleshooting
+
+**Only some tabs are opening:**
+- Make sure your browser is running before executing the script
+- The script uses sequential opening with delays - if your browser is slow, you may need to increase the delay
+
+**Script doesn't work:**
+- Ensure the script is executable: `chmod +x hunt.sh`
+- Check that Python 3 is installed: `python3 --version`
+- Verify you're on macOS (the `open` command is macOS-specific)
+
+## License
+
+This project is open source. Feel free to use and modify as needed.
+
+## Contributing
+
+Contributions are welcome! See `PROJECT_CONTEXT.md` for technical details and development notes.
+
