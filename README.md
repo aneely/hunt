@@ -5,7 +5,8 @@
 ## Features
 
 - 🔍 Search across 8 popular search engines with a single command
-- 🎯 Interactive mode to select specific search engines
+- 🛒 **Subcommands**: Search shopping sites with `shop` subcommand (Go version)
+- 🎯 Interactive mode to select specific services
 - 🎛️ Command-line service selection with `-s`/`--services` flag
 - 📝 Support for service names or numbers (mix and match)
 - 🌐 Opens results in separate browser tabs
@@ -13,8 +14,9 @@
 - 🍎 Cross-platform support (macOS, Linux, Windows) via Go port
 - ✅ Comprehensive test suite for both implementations
 
-## Supported Search Engines
+## Supported Services
 
+### Search Engines (Default)
 1. Bing
 2. DuckDuckGo
 3. Google
@@ -23,6 +25,13 @@
 6. StartPage
 7. Yahoo
 8. YouTube
+
+### Shopping Sites (Go version - use `shop` subcommand)
+1. Amazon
+2. eBay
+3. Gazelle
+4. Slick Deals
+5. Swappa
 
 ## Requirements
 
@@ -65,7 +74,7 @@ The Go version provides the same functionality as the bash version with:
 
 ## Usage
 
-Both the bash and Go versions support the same command-line interface.
+Both the bash and Go versions support the same command-line interface. The Go version also supports subcommands for different service categories.
 
 ### Basic Usage
 
@@ -83,14 +92,45 @@ go run . "your search term"
 
 Example:
 ```bash
-./hunt.sh "machine learning algorithms"
+./hunt "machine learning algorithms"
 ```
 
 This will open 8 browser tabs, one for each search engine with your search query.
 
+### Subcommands (Go version)
+
+The Go version supports subcommands to search different categories of services. Subcommands come **before** flags for backward compatibility.
+
+**Default (Search Engines):**
+```bash
+./hunt "your search term"
+# Searches across all search engines (default behavior)
+```
+
+**Shopping Sites:**
+```bash
+./hunt shop "laptop"
+# or
+./hunt shopping "laptop"
+# Searches across all shopping sites
+```
+
+Subcommands work with all existing flags:
+```bash
+# Interactive mode with shopping sites
+./hunt shop -i "laptop"
+
+# Select specific shopping sites
+./hunt shop -s 1 3 "laptop"
+# Selects Amazon (1) and Gazelle (3)
+
+# Select by name
+./hunt shop -s Amazon eBay "laptop"
+```
+
 ### Interactive Mode
 
-Select specific search engines to use:
+Select specific services to use:
 
 ```bash
 # Bash version
@@ -98,18 +138,22 @@ Select specific search engines to use:
 # or
 ./hunt.sh --interactive "your search term"
 
-# Go version
+# Go version (search engines)
 ./hunt -i "your search term"
 # or
 ./hunt --interactive "your search term"
+
+# Go version (shopping sites)
+./hunt shop -i "laptop"
 ```
 
-When you run in interactive mode, you'll see a numbered list of search engines:
+When you run in interactive mode, you'll see a numbered list of services for the selected category:
 
+**Search Engines (default):**
 ```
-Select search engines to use (enter numbers, separated by spaces):
+Select services to use (enter numbers, separated by spaces):
 
-  0) All search engines
+  0) All services
   1) Bing
   2) DuckDuckGo
   3) Google
@@ -122,14 +166,28 @@ Select search engines to use (enter numbers, separated by spaces):
 Enter selection(s):
 ```
 
+**Shopping Sites (with `shop` subcommand):**
+```
+Select services to use (enter numbers, separated by spaces):
+
+  0) All services
+  1) Amazon
+  2) eBay
+  3) Gazelle
+  4) Slick Deals
+  5) Swappa
+
+Enter selection(s):
+```
+
 You can:
-- Enter a single number: `3` (searches only Google)
-- Enter multiple numbers: `1 3 5` (searches Bing, Google, and Mojeek)
-- Enter `0` to select all search engines
+- Enter a single number: `3` (searches only Google or Gazelle, depending on category)
+- Enter multiple numbers: `1 3 5` (searches multiple services)
+- Enter `0` to select all services in the category
 
 ### Services Flag Mode
 
-Select specific search engines directly from the command line without interactive prompts:
+Select specific services directly from the command line without interactive prompts:
 
 ```bash
 # Bash version
@@ -137,80 +195,115 @@ Select specific search engines directly from the command line without interactiv
 # or
 ./hunt.sh --services SELECTION ... "your search term"
 
-# Go version
+# Go version (search engines)
 ./hunt -s SELECTION ... "your search term"
 # or
 ./hunt --services SELECTION ... "your search term"
+
+# Go version (shopping sites)
+./hunt shop -s SELECTION ... "laptop"
 ```
 
-You can specify engines by:
-- **Number**: `0` for all, or `1` through `8` (corresponds to the numbered list above)
-- **Name**: The exact service name (case-insensitive), e.g., `Bing`, `Google`, `YouTube`
-- **"all"**: Select all search engines
+You can specify services by:
+- **Number**: `0` for all, or `1` through `N` (corresponds to the numbered list for the selected category)
+- **Name**: The exact service name (case-insensitive), e.g., `Bing`, `Google`, `Amazon`, `eBay`
+- **"all"**: Select all services in the category
 
 **Examples:**
 
 ```bash
-# Select by numbers
-./hunt.sh -s 1 3 5 "machine learning"
+# Search engines - select by numbers
+./hunt -s 1 3 5 "machine learning"
 # Searches: Bing (1), Google (3), Mojeek (5)
 
-# Select by names
-./hunt.sh -s Bing Google "machine learning"
+# Search engines - select by names
+./hunt -s Bing Google "machine learning"
 # Searches: Bing and Google
 
+# Shopping sites - select by numbers
+./hunt shop -s 1 3 "laptop"
+# Searches: Amazon (1), Gazelle (3)
+
+# Shopping sites - select by names
+./hunt shop -s Amazon eBay "laptop"
+# Searches: Amazon and eBay
+
 # Mix numbers and names
-./hunt.sh -s 1 Google 5 "machine learning"
+./hunt -s 1 Google 5 "machine learning"
 # Searches: Bing (1), Google, Mojeek (5)
 
-# Select all engines
-./hunt.sh -s all "machine learning"
+# Select all services in category
+./hunt -s all "machine learning"
 # or
-./hunt.sh -s 0 "machine learning"
+./hunt -s 0 "machine learning"
 ```
 
 **Note**: The script automatically detects when service selections end and the search term begins. If you need to be explicit, you can use `--` as a separator:
 ```bash
-./hunt.sh -s Bing Google -- "test search"
+./hunt -s Bing Google -- "test search"
 ```
 
 ### Examples
 
+**Search Engines (Default):**
 ```bash
 # Search all engines for "python tutorials"
-./hunt.sh "python tutorials"
+./hunt "python tutorials"
 
 # Interactive mode - select specific engines
-./hunt.sh -i "bash scripting"
+./hunt -i "bash scripting"
 
 # Services flag - select by numbers
-./hunt.sh -s 1 3 5 "python tutorials"
+./hunt -s 1 3 5 "python tutorials"
 
 # Services flag - select by names
-./hunt.sh -s Bing Google YouTube "python tutorials"
+./hunt -s Bing Google YouTube "python tutorials"
 
 # Services flag - mix numbers and names
-./hunt.sh -s 1 Google 5 "python tutorials"
+./hunt -s 1 Google 5 "python tutorials"
 
 # Search with special characters (automatically URL-encoded)
-./hunt.sh "C++ programming"
+./hunt "C++ programming"
+```
+
+**Shopping Sites (Go version):**
+```bash
+# Search all shopping sites
+./hunt shop "laptop"
+
+# Interactive mode - select specific shopping sites
+./hunt shop -i "laptop"
+
+# Services flag - select by numbers
+./hunt shop -s 1 3 "laptop"
+# Searches: Amazon (1), Gazelle (3)
+
+# Services flag - select by names
+./hunt shop -s Amazon eBay "laptop"
+
+# Mix numbers and names
+./hunt shop -s 1 eBay 3 "laptop"
 ```
 
 ## How It Works
 
-1. **Argument Parsing**: The script parses command-line flags (`-i`, `-s`) and service selections
-2. **Service Selection**: In interactive mode, prompts for selection. With `-s` flag, validates service names/numbers automatically
-3. **Input Processing**: The script takes your search term and URL-encodes it using a bash-native implementation
-4. **URL Construction**: For each selected search engine, it constructs the appropriate search URL with your encoded query
-5. **Browser Opening**: Uses macOS's `open` command to open each URL in your default browser
-6. **Tab Management**: Opens URLs sequentially with small delays to ensure each opens in a separate tab
+1. **Subcommand Parsing** (Go version): Detects subcommands (e.g., `shop`) before parsing flags for backward compatibility
+2. **Category Selection**: Filters services by category (default: `search`, or `shop` with subcommand)
+3. **Argument Parsing**: The script parses command-line flags (`-i`, `-s`) and service selections
+4. **Service Selection**: In interactive mode, prompts for selection. With `-s` flag, validates service names/numbers automatically
+5. **Input Processing**: The script takes your search term and URL-encodes it appropriately
+6. **URL Construction**: For each selected service, it constructs the appropriate search URL with your encoded query
+7. **Browser Opening**: Uses platform-specific commands (`open` on macOS, `xdg-open` on Linux, `cmd /c start` on Windows) to open each URL
+8. **Tab Management**: Opens URLs sequentially with small delays to ensure each opens in a separate tab
 
 ## Technical Details
 
 - **Bash Compatibility**: Uses parallel arrays instead of associative arrays for compatibility with bash 3.2 (macOS default)
+- **Category-Based Configuration** (Go version): Services organized by category in JSON (e.g., `search`, `shop`)
+- **Subcommand Parsing** (Go version): Subcommands parsed before flags to maintain backward compatibility
 - **Service Name Matching**: Case-insensitive matching for service names (e.g., `bing`, `Bing`, `BING` all work)
 - **Automatic Detection**: The `-s` flag automatically detects when service selections end and the search term begins
-- **URL Encoding**: Handles spaces, special characters, and Unicode properly using bash-native implementation
+- **URL Encoding**: Handles spaces, special characters, and Unicode properly
 - **Sequential Opening**: Opens URLs one at a time with 0.3 second delays to ensure reliable tab creation
 - **Duplicate Handling**: Automatically removes duplicate service selections
 - **Test Mode**: Supports `HUNT_TEST_MODE` environment variable to skip delays during automated testing
@@ -283,10 +376,11 @@ See `tests/README.md` for detailed bash testing documentation.
 
 Planned features (see `PROJECT_CONTEXT.md` for details):
 
-- Additional service categories (Reddit, StackOverflow, Wikipedia, etc.)
+- ✅ **Subcommands**: Completed! Go version now supports subcommands for different service categories
+- Additional service categories (Reddit, StackOverflow, Wikipedia, Tech News, News, etc.)
+- Subcommand support in bash version
 - Configuration file for custom service definitions
 - Browser detection and optimization
-- Service category selection
 - Better error handling
 - **Browser Extension**: Create a browser extension for quick access from the browser toolbar
 - **System Path Integration**: Package the script for easy installation as a system command (e.g., `hunt` instead of `./hunt.sh`)

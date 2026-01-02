@@ -11,11 +11,13 @@ func TestLoadConfig(t *testing.T) {
 	tmpDir := t.TempDir()
 	jsonPath := filepath.Join(tmpDir, "search_engines.json")
 
-	validJSON := `[
-		{"name": "Bing", "url": "https://www.bing.com/search?q=", "space_delimiter": "+"},
-		{"name": "Google", "url": "https://www.google.com/search?q=", "space_delimiter": "+"},
-		{"name": "Yahoo", "url": "https://search.yahoo.com/search?p=", "space_delimiter": "+"}
-	]`
+	validJSON := `{
+		"search": [
+			{"name": "Bing", "url": "https://www.bing.com/search?q=", "space_delimiter": "+"},
+			{"name": "Google", "url": "https://www.google.com/search?q=", "space_delimiter": "+"},
+			{"name": "Yahoo", "url": "https://search.yahoo.com/search?p=", "space_delimiter": "+"}
+		]
+	}`
 
 	if err := os.WriteFile(jsonPath, []byte(validJSON), 0644); err != nil {
 		t.Fatalf("Failed to create test JSON file: %v", err)
@@ -38,19 +40,20 @@ func TestLoadConfig(t *testing.T) {
 		t.Fatalf("LoadConfig() error = %v, want nil", err)
 	}
 
-	if len(config.Engines) != 3 {
-		t.Errorf("LoadConfig() loaded %d engines, want 3", len(config.Engines))
+	engines := config.GetEnginesByCategory("search")
+	if len(engines) != 3 {
+		t.Errorf("LoadConfig() loaded %d engines, want 3", len(engines))
 	}
 
 	// Verify first engine
-	if config.Engines[0].Name != "Bing" {
-		t.Errorf("LoadConfig() first engine name = %q, want %q", config.Engines[0].Name, "Bing")
+	if engines[0].Name != "Bing" {
+		t.Errorf("LoadConfig() first engine name = %q, want %q", engines[0].Name, "Bing")
 	}
-	if config.Engines[0].URL != "https://www.bing.com/search?q=" {
-		t.Errorf("LoadConfig() first engine URL = %q, want %q", config.Engines[0].URL, "https://www.bing.com/search?q=")
+	if engines[0].URL != "https://www.bing.com/search?q=" {
+		t.Errorf("LoadConfig() first engine URL = %q, want %q", engines[0].URL, "https://www.bing.com/search?q=")
 	}
-	if config.Engines[0].SpaceDelimiter != "+" {
-		t.Errorf("LoadConfig() first engine delimiter = %q, want %q", config.Engines[0].SpaceDelimiter, "+")
+	if engines[0].SpaceDelimiter != "+" {
+		t.Errorf("LoadConfig() first engine delimiter = %q, want %q", engines[0].SpaceDelimiter, "+")
 	}
 }
 
@@ -59,9 +62,11 @@ func TestLoadConfig_DefaultDelimiter(t *testing.T) {
 	jsonPath := filepath.Join(tmpDir, "search_engines.json")
 
 	// JSON without space_delimiter (should default to "+")
-	jsonWithoutDelimiter := `[
-		{"name": "Test", "url": "https://test.com/search?q="}
-	]`
+	jsonWithoutDelimiter := `{
+		"search": [
+			{"name": "Test", "url": "https://test.com/search?q="}
+		]
+	}`
 
 	if err := os.WriteFile(jsonPath, []byte(jsonWithoutDelimiter), 0644); err != nil {
 		t.Fatalf("Failed to create test JSON file: %v", err)
@@ -82,8 +87,9 @@ func TestLoadConfig_DefaultDelimiter(t *testing.T) {
 		t.Fatalf("LoadConfig() error = %v, want nil", err)
 	}
 
-	if config.Engines[0].SpaceDelimiter != "+" {
-		t.Errorf("LoadConfig() default delimiter = %q, want %q", config.Engines[0].SpaceDelimiter, "+")
+	engines := config.GetEnginesByCategory("search")
+	if engines[0].SpaceDelimiter != "+" {
+		t.Errorf("LoadConfig() default delimiter = %q, want %q", engines[0].SpaceDelimiter, "+")
 	}
 }
 
@@ -92,9 +98,11 @@ func TestLoadConfig_EmptyDelimiter(t *testing.T) {
 	jsonPath := filepath.Join(tmpDir, "search_engines.json")
 
 	// JSON with empty space_delimiter (should default to "+")
-	jsonWithEmptyDelimiter := `[
-		{"name": "Test", "url": "https://test.com/search?q=", "space_delimiter": ""}
-	]`
+	jsonWithEmptyDelimiter := `{
+		"search": [
+			{"name": "Test", "url": "https://test.com/search?q=", "space_delimiter": ""}
+		]
+	}`
 
 	if err := os.WriteFile(jsonPath, []byte(jsonWithEmptyDelimiter), 0644); err != nil {
 		t.Fatalf("Failed to create test JSON file: %v", err)
@@ -115,8 +123,9 @@ func TestLoadConfig_EmptyDelimiter(t *testing.T) {
 		t.Fatalf("LoadConfig() error = %v, want nil", err)
 	}
 
-	if config.Engines[0].SpaceDelimiter != "+" {
-		t.Errorf("LoadConfig() empty delimiter default = %q, want %q", config.Engines[0].SpaceDelimiter, "+")
+	engines := config.GetEnginesByCategory("search")
+	if engines[0].SpaceDelimiter != "+" {
+		t.Errorf("LoadConfig() empty delimiter default = %q, want %q", engines[0].SpaceDelimiter, "+")
 	}
 }
 
@@ -150,7 +159,7 @@ func TestLoadConfig_EmptyArray(t *testing.T) {
 	tmpDir := t.TempDir()
 	jsonPath := filepath.Join(tmpDir, "search_engines.json")
 
-	emptyJSON := `[]`
+	emptyJSON := `{}`
 
 	if err := os.WriteFile(jsonPath, []byte(emptyJSON), 0644); err != nil {
 		t.Fatalf("Failed to create test JSON file: %v", err)
@@ -182,11 +191,11 @@ func TestLoadConfig_MissingFields(t *testing.T) {
 	}{
 		{
 			name: "missing name",
-			json: `[{"url": "https://test.com/search?q="}]`,
+			json: `{"search": [{"url": "https://test.com/search?q="}]}`,
 		},
 		{
 			name: "missing url",
-			json: `[{"name": "Test"}]`,
+			json: `{"search": [{"name": "Test"}]}`,
 		},
 	}
 
@@ -219,10 +228,12 @@ func TestLoadConfig_ValidatesJSONStructure(t *testing.T) {
 	jsonPath := filepath.Join(tmpDir, "search_engines.json")
 
 	// Valid JSON structure
-	validJSON := `[
-		{"name": "Bing", "url": "https://www.bing.com/search?q=", "space_delimiter": "+"},
-		{"name": "Google", "url": "https://www.google.com/search?q=", "space_delimiter": "%20"}
-	]`
+	validJSON := `{
+		"search": [
+			{"name": "Bing", "url": "https://www.bing.com/search?q=", "space_delimiter": "+"},
+			{"name": "Google", "url": "https://www.google.com/search?q=", "space_delimiter": "%20"}
+		]
+	}`
 
 	if err := os.WriteFile(jsonPath, []byte(validJSON), 0644); err != nil {
 		t.Fatalf("Failed to create test JSON file: %v", err)
@@ -244,12 +255,13 @@ func TestLoadConfig_ValidatesJSONStructure(t *testing.T) {
 	}
 
 	// Verify both engines loaded correctly
-	if len(config.Engines) != 2 {
-		t.Errorf("LoadConfig() loaded %d engines, want 2", len(config.Engines))
+	engines := config.GetEnginesByCategory("search")
+	if len(engines) != 2 {
+		t.Errorf("LoadConfig() loaded %d engines, want 2", len(engines))
 	}
 
 	// Verify second engine has custom delimiter
-	if config.Engines[1].SpaceDelimiter != "%20" {
-		t.Errorf("LoadConfig() second engine delimiter = %q, want %q", config.Engines[1].SpaceDelimiter, "%20")
+	if engines[1].SpaceDelimiter != "%20" {
+		t.Errorf("LoadConfig() second engine delimiter = %q, want %q", engines[1].SpaceDelimiter, "%20")
 	}
 }

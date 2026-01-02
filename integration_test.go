@@ -14,11 +14,13 @@ func TestIntegration_URLConstructionAndEncoding(t *testing.T) {
 	tmpDir := t.TempDir()
 	jsonPath := filepath.Join(tmpDir, "search_engines.json")
 
-	testJSON := `[
-		{"name": "Bing", "url": "https://www.bing.com/search?q=", "space_delimiter": "+"},
-		{"name": "Yahoo", "url": "https://search.yahoo.com/search?p=", "space_delimiter": "+"},
-		{"name": "Custom", "url": "https://custom.com/search?q=", "space_delimiter": "%20"}
-	]`
+	testJSON := `{
+		"search": [
+			{"name": "Bing", "url": "https://www.bing.com/search?q=", "space_delimiter": "+"},
+			{"name": "Yahoo", "url": "https://search.yahoo.com/search?p=", "space_delimiter": "+"},
+			{"name": "Custom", "url": "https://custom.com/search?q=", "space_delimiter": "%20"}
+		]
+	}`
 
 	if err := os.WriteFile(jsonPath, []byte(testJSON), 0644); err != nil {
 		t.Fatalf("Failed to create test JSON file: %v", err)
@@ -48,7 +50,8 @@ func TestIntegration_URLConstructionAndEncoding(t *testing.T) {
 		"https://custom.com/search?q=test%20query",
 	}
 
-	for i, engine := range config.Engines {
+	engines := config.GetEnginesByCategory("search")
+	for i, engine := range engines {
 		url := BuildSearchURL(engine, searchTerm)
 		if url != expectedURLs[i] {
 			t.Errorf("BuildSearchURL(engine[%d], %q) = %q, want %q", i, searchTerm, url, expectedURLs[i])

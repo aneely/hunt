@@ -9,14 +9,14 @@ import (
 
 // SearchEngine represents a single search engine configuration
 type SearchEngine struct {
-	Name          string `json:"name"`
-	URL           string `json:"url"`
+	Name           string `json:"name"`
+	URL            string `json:"url"`
 	SpaceDelimiter string `json:"space_delimiter"`
 }
 
 // Config holds the application configuration
 type Config struct {
-	Engines []SearchEngine `json:"-"`
+	Categories map[string][]SearchEngine `json:"-"`
 }
 
 // LoadConfig loads search engines from the JSON file
@@ -50,32 +50,58 @@ func LoadConfig() (*Config, error) {
 		return nil, fmt.Errorf("failed to read search_engines.json: %w", err)
 	}
 
-	// Parse JSON
-	var engines []SearchEngine
-	if err := json.Unmarshal(data, &engines); err != nil {
+	// Parse JSON - new structure with category keys
+	var categoriesData map[string][]SearchEngine
+	if err := json.Unmarshal(data, &categoriesData); err != nil {
 		return nil, fmt.Errorf("failed to parse JSON: %w", err)
 	}
 
 	// Validate and set defaults
-	if len(engines) == 0 {
-		return nil, fmt.Errorf("no search engines found in JSON file")
+	if len(categoriesData) == 0 {
+		return nil, fmt.Errorf("no categories found in JSON file")
 	}
 
-	for i := range engines {
-		// Default space delimiter to "+" if not specified
-		if engines[i].SpaceDelimiter == "" {
-			engines[i].SpaceDelimiter = "+"
+	categories := make(map[string][]SearchEngine)
+	for category, engines := range categoriesData {
+		if len(engines) == 0 {
+			continue // Skip empty categories
 		}
 
-		// Validate required fields
-		if engines[i].Name == "" {
-			return nil, fmt.Errorf("search engine at index %d has no name", i)
+		validatedEngines := make([]SearchEngine, 0, len(engines))
+		for i := range engines {
+			// Default space delimiter to "+" if not specified
+			if engines[i].SpaceDelimiter == "" {
+				engines[i].SpaceDelimiter = "+"
+			}
+
+			// Validate required fields
+			if engines[i].Name == "" {
+				return nil, fmt.Errorf("engine in category %q at index %d has no name", category, i)
+			}
+			if engines[i].URL == "" {
+				return nil, fmt.Errorf("engine in category %q at index %d has no URL", category, i)
+			}
+
+			validatedEngines = append(validatedEngines, engines[i])
 		}
-		if engines[i].URL == "" {
-			return nil, fmt.Errorf("search engine at index %d has no URL", i)
+
+		if len(validatedEngines) > 0 {
+			categories[category] = validatedEngines
 		}
 	}
 
-	return &Config{Engines: engines}, nil
+	if len(categories) == 0 {
+		return nil, fmt.Errorf("no valid engines found in any category")
+	}
+
+	return &Config{Categories: categories}, nil
 }
 
+// GetEnginesByCategory returns engines for a specific category
+// Returns empty slice if category doesn't exist
+func (c *Config) GetEnginesByCategory(category string) []SearchEngine {
+	if engines, ok := c.Categories[category]; ok {
+		return engines
+	}
+	return []SearchEngine{}
+}

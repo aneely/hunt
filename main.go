@@ -10,6 +10,25 @@ import (
 )
 
 func main() {
+	// Check for subcommand BEFORE parsing flags (for backward compatibility)
+	// Subcommands come before flags: hunt shop -i "laptop"
+	var category string
+	if len(os.Args) > 1 && !strings.HasPrefix(os.Args[1], "-") {
+		// First argument is not a flag - check if it's a subcommand
+		subcommand := strings.ToLower(os.Args[1])
+		mappedCategory := mapSubcommandToCategory(subcommand)
+		if mappedCategory != "" {
+			category = mappedCategory
+			// Remove subcommand from os.Args so flag.Parse() works normally
+			os.Args = append(os.Args[:1], os.Args[2:]...)
+		}
+	}
+
+	// Default to "search" category if no subcommand
+	if category == "" {
+		category = "search"
+	}
+
 	// Parse flags
 	interactive := flag.Bool("i", false, "Interactive mode to select search engines")
 	interactiveLong := flag.Bool("interactive", false, "Interactive mode to select search engines")
@@ -31,6 +50,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Get engines for the selected category
+	engines := config.GetEnginesByCategory(category)
+	if len(engines) == 0 {
+		fmt.Fprintf(os.Stderr, "Error: No services found for category '%s'\n", category)
+		os.Exit(1)
+	}
+
 	// Parse arguments manually to handle -s flag with multiple selections
 	args := flag.Args()
 	var serviceSelections []string
@@ -48,7 +74,7 @@ func main() {
 			}
 
 			// Check if this looks like a service selection
-			if isServiceSelection(arg, config.Engines) {
+			if isServiceSelection(arg, engines) {
 				serviceSelections = append(serviceSelections, arg)
 			} else {
 				// This doesn't look like a service, so it's the start of the search term
@@ -80,7 +106,7 @@ func main() {
 	var selectedIndices []int
 
 	if *interactive {
-		selectedIndices, err = handleInteractiveMode(config.Engines)
+		selectedIndices, err = handleInteractiveMode(engines)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
@@ -92,21 +118,21 @@ func main() {
 			os.Exit(1)
 		}
 
-		selectedIndices, err = ParseSelections(serviceSelections, config.Engines)
+		selectedIndices, err = ParseSelections(serviceSelections, engines)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
 
-		fmt.Println("Selected search engines:")
+		fmt.Println("Selected services:")
 		for _, idx := range selectedIndices {
-			fmt.Printf("  - %s\n", config.Engines[idx].Name)
+			fmt.Printf("  - %s\n", engines[idx].Name)
 		}
 		fmt.Println()
 	} else {
-		// Default: select all engines
-		selectedIndices = make([]int, len(config.Engines))
-		for i := range config.Engines {
+		// Default: select all engines in the category
+		selectedIndices = make([]int, len(engines))
+		for i := range engines {
 			selectedIndices[i] = i
 		}
 	}
@@ -115,8 +141,8 @@ func main() {
 	urls := make([]string, len(selectedIndices))
 	engineNames := make([]string, len(selectedIndices))
 	for i, idx := range selectedIndices {
-		urls[i] = BuildSearchURL(config.Engines[idx], searchTerm)
-		engineNames[i] = config.Engines[idx].Name
+		urls[i] = BuildSearchURL(engines[idx], searchTerm)
+		engineNames[i] = engines[idx].Name
 	}
 
 	// Open URLs
@@ -128,7 +154,20 @@ func main() {
 	// Summary
 	fmt.Println()
 	fmt.Printf("Opened searches for: %s\n", searchTerm)
-	fmt.Printf("Total search engines used: %d\n", len(selectedIndices))
+	fmt.Printf("Total services used: %d\n", len(selectedIndices))
+}
+
+// mapSubcommandToCategory maps a subcommand string to a category
+// Returns empty string if subcommand is not recognized
+func mapSubcommandToCategory(subcommand string) string {
+	switch subcommand {
+	case "shop", "shopping":
+		return "shop"
+	case "search":
+		return "search"
+	default:
+		return ""
+	}
 }
 
 // isServiceSelection checks if an argument looks like a service selection
@@ -157,11 +196,11 @@ func isServiceSelection(arg string, engines []SearchEngine) bool {
 
 // handleInteractiveMode displays the menu and collects user selections
 func handleInteractiveMode(engines []SearchEngine) ([]int, error) {
-	fmt.Println("Select search engines to use (enter numbers, separated by spaces):")
+	fmt.Println("Select services to use (enter numbers, separated by spaces):")
 	fmt.Println()
 
 	// Display "all" option
-	fmt.Println("  0) All search engines")
+	fmt.Println("  0) All services")
 
 	// Display engines (1-indexed for user)
 	for i, engine := range engines {
@@ -188,7 +227,7 @@ func handleInteractiveMode(engines []SearchEngine) ([]int, error) {
 	}
 
 	fmt.Println()
-	fmt.Println("Selected search engines:")
+	fmt.Println("Selected services:")
 	for _, idx := range indices {
 		fmt.Printf("  - %s\n", engines[idx].Name)
 	}
@@ -198,15 +237,22 @@ func handleInteractiveMode(engines []SearchEngine) ([]int, error) {
 }
 
 func printUsage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s [-i|--interactive] [-s|--services SELECTION ...] <search term>\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "Example: %s 'machine learning'\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "Example: %s -i 'machine learning'\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "Example: %s -s 1 3 5 'machine learning'\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "Example: %s -s Bing Google Mojeek 'machine learning'\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "Example: %s -s 1 Google 5 'machine learning'\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "Usage: %s [SUBCOMMAND] [-i|--interactive] [-s|--services SELECTION ...] <search term>\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "\n")
+	fmt.Fprintf(os.Stderr, "Subcommands:\n")
+	fmt.Fprintf(os.Stderr, "  (none)                   Search across search engines (default)\n")
+	fmt.Fprintf(os.Stderr, "  shop                     Search across shopping sites\n")
+	fmt.Fprintf(os.Stderr, "\n")
+	fmt.Fprintf(os.Stderr, "Examples:\n")
+	fmt.Fprintf(os.Stderr, "  %s 'machine learning'\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "  %s shop 'laptop'\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "  %s -i 'machine learning'\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "  %s shop -i 'laptop'\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "  %s -s 1 3 5 'machine learning'\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "  %s shop -s 1 3 'laptop'\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "  %s -s Bing Google Mojeek 'machine learning'\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "\n")
 	fmt.Fprintf(os.Stderr, "Options:\n")
-	fmt.Fprintf(os.Stderr, "  -i, --interactive         Interactive mode to select search engines\n")
-	fmt.Fprintf(os.Stderr, "  -s, --services SELECTION Specify search engines by number (0 for all, 1-N for engines) or name\n")
+	fmt.Fprintf(os.Stderr, "  -i, --interactive         Interactive mode to select services\n")
+	fmt.Fprintf(os.Stderr, "  -s, --services SELECTION Specify services by number (0 for all, 1-N for services) or name\n")
 }
-
