@@ -67,8 +67,8 @@ func TestIntegration_ServiceSelectionAndURLBuilding(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		selections   []string
-		searchTerm   string
+		selections  []string
+		searchTerm  string
 		wantURLs    []string
 		wantEngines []string
 	}{
@@ -251,4 +251,3 @@ func TestIntegration_AllSelectionWithMultipleEngines(t *testing.T) {
 		t.Errorf("Built %d URLs, want %d", len(urls), len(engines))
 	}
 }
-

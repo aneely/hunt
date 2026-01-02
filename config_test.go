@@ -253,4 +253,3 @@ func TestLoadConfig_ValidatesJSONStructure(t *testing.T) {
 		t.Errorf("LoadConfig() second engine delimiter = %q, want %q", config.Engines[1].SpaceDelimiter, "%20")
 	}
 }
-
