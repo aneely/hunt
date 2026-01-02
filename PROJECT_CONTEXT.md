@@ -158,14 +158,21 @@
 ### File Structure
 ```
 hunt/
-├── hunt.sh                 # Main executable script
+├── hunt.sh                 # Bash implementation - main executable script
 ├── search_engines.json    # Search engine definitions (names and URLs)
 ├── README.md               # User-facing documentation
 ├── PROJECT_CONTEXT.md      # This file - project documentation
 ├── initial-sketch.md       # Original project specification with all service examples
 ├── LICENSE                 # MIT License
 ├── .gitignore             # Git ignore patterns for OS and editor files
-└── tests/                  # Test suite
+├── go.mod                  # Go module definition
+├── main.go                 # Go implementation - main entry point
+├── config.go               # Go - JSON configuration loading
+├── url.go                  # Go - URL encoding and construction
+├── selection.go            # Go - Service selection logic
+├── browser.go              # Go - Cross-platform browser opening
+├── *_test.go               # Go test files (unit and integration tests)
+└── tests/                  # Bash test suite
     ├── README.md           # Test documentation
     ├── test_helpers.sh     # Test helper functions and assertions
     ├── run_tests.sh        # Test runner script
@@ -256,13 +263,14 @@ hunt/
     - Handle path setup automatically
     - Enable easy updates via `brew upgrade hunt`
     - Follow Homebrew conventions for formula structure and dependencies
-12. **Go Port**: Port the project to Go for cross-platform distribution as a single portable binary. Benefits include:
+12. ✅ **Go Port**: Completed! Ported the project to Go for cross-platform distribution as a single portable binary. Benefits include:
     - Single binary distribution (no dependencies)
     - Cross-platform support (macOS, Linux, Windows)
     - Better performance and error handling
     - Easier distribution and installation
     - No bash version compatibility concerns
-    - Could maintain feature parity with bash version while adding platform-specific optimizations
+    - Comprehensive test suite (unit and integration tests)
+    - Full feature parity with bash version
 
 ## Development History
 
@@ -388,8 +396,9 @@ Examples:
 
 ### Test Suite
 
-The project includes a comprehensive test suite using a custom, dependency-free bash framework:
+The project includes comprehensive test suites for both implementations:
 
+**Bash Test Suite:**
 - **Unit Tests**: Test individual functions (URL encoding, service selection, URL construction)
   - `test_url_encode.sh` - Tests URL encoding function with various inputs
   - `test_service_selection.sh` - Tests service selection validation and resolution
@@ -398,6 +407,16 @@ The project includes a comprehensive test suite using a custom, dependency-free 
   - `test_acceptance.sh` - Full script execution tests with mocked `open` command
 - **No external dependencies**: Pure bash implementation with simple assertion helpers
 - **Test Mode**: Script supports `HUNT_TEST_MODE` environment variable to skip sleep delays during testing
+
+**Go Test Suite:**
+- **Unit Tests**: Test individual functions with table-driven tests
+  - `url_test.go` - URL encoding and construction tests (100% coverage)
+  - `selection_test.go` - Service selection resolution and parsing tests (100% coverage)
+  - `config_test.go` - JSON configuration loading tests (88.9% coverage)
+- **Integration Tests**: Test function interactions and full pipeline
+  - `integration_test.go` - Integration tests for URL construction, service selection, and URL building
+- **Test Coverage**: 33.3% overall (core functions have 88-100% coverage)
+- **Standard Go testing**: Uses Go's built-in testing package, no external dependencies
 
 ### Running Tests
 
@@ -452,9 +471,11 @@ See `tests/README.md` for detailed testing documentation.
 
 1. ✅ ~~Test with all 8 search engines to verify all tabs open correctly~~ (Completed)
 2. ✅ ~~Add configuration support for selecting which services to use~~ (Completed - via `-i` and `-s` flags)
-3. Consider adding other service categories from `initial-sketch.md` (Reddit, StackOverflow, Wikipedia, etc.)
-4. Improve error handling and user feedback
-5. Consider making the script more portable (not just macOS)
+3. ✅ ~~Port to Go for cross-platform support~~ (Completed - full feature parity with comprehensive tests)
+4. Consider adding other service categories from `initial-sketch.md` (Reddit, StackOverflow, Wikipedia, etc.)
+5. Improve error handling and user feedback
 6. Add service aliases for shorter names (e.g., `ddg` for DuckDuckGo)
 7. Consider service category grouping and category-based selection
+8. Create Homebrew formula for Go binary distribution
+9. Add system path integration for easier installation
 

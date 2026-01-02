@@ -32,3 +32,11 @@ test_output/
 .env.local
 config.local.json
 
+# Go build artifacts
+hunt
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+

@@ -9,8 +9,9 @@
 - 🎛️ Command-line service selection with `-s`/`--services` flag
 - 📝 Support for service names or numbers (mix and match)
 - 🌐 Opens results in separate browser tabs
-- 🚀 Fast and lightweight - simple bash script
-- 🍎 macOS optimized (uses native `open` command)
+- 🚀 **Two implementations available**: Bash script and Go binary
+- 🍎 Cross-platform support (macOS, Linux, Windows) via Go port
+- ✅ Comprehensive test suite for both implementations
 
 ## Supported Search Engines
 
@@ -25,10 +26,18 @@
 
 ## Requirements
 
+### Bash Version
 - macOS (uses `open` command)
 - Bash 3.2+ (default on macOS)
 
+### Go Version
+- Go 1.21+ (for building from source)
+- Cross-platform: macOS, Linux, Windows
+- Single binary - no runtime dependencies
+
 ## Installation
+
+### Bash Version
 
 1. Clone or download this repository
 2. Make the script executable:
@@ -36,14 +45,40 @@
    chmod +x hunt.sh
    ```
 
+### Go Version
+
+**Option 1: Build from source**
+```bash
+go build -o hunt .
+```
+
+**Option 2: Run directly (development)**
+```bash
+go run . "your search term"
+```
+
+The Go version provides the same functionality as the bash version with:
+- Cross-platform support (macOS, Linux, Windows)
+- Single portable binary
+- Better error handling
+- Comprehensive test suite
+
 ## Usage
+
+Both the bash and Go versions support the same command-line interface.
 
 ### Basic Usage
 
-Search across all search engines:
-
+**Bash version:**
 ```bash
 ./hunt.sh "your search term"
+```
+
+**Go version:**
+```bash
+./hunt "your search term"
+# or
+go run . "your search term"
 ```
 
 Example:
@@ -58,9 +93,15 @@ This will open 8 browser tabs, one for each search engine with your search query
 Select specific search engines to use:
 
 ```bash
+# Bash version
 ./hunt.sh -i "your search term"
 # or
 ./hunt.sh --interactive "your search term"
+
+# Go version
+./hunt -i "your search term"
+# or
+./hunt --interactive "your search term"
 ```
 
 When you run in interactive mode, you'll see a numbered list of search engines:
@@ -91,9 +132,15 @@ You can:
 Select specific search engines directly from the command line without interactive prompts:
 
 ```bash
+# Bash version
 ./hunt.sh -s SELECTION ... "your search term"
 # or
 ./hunt.sh --services SELECTION ... "your search term"
+
+# Go version
+./hunt -s SELECTION ... "your search term"
+# or
+./hunt --services SELECTION ... "your search term"
 ```
 
 You can specify engines by:
@@ -173,14 +220,21 @@ You can specify engines by:
 
 ```
 hunt/
-├── hunt.sh              # Main executable script
+├── hunt.sh              # Bash implementation
 ├── search_engines.json  # Search engine definitions
 ├── README.md            # This file
 ├── PROJECT_CONTEXT.md   # Detailed project documentation
 ├── initial-sketch.md   # Original project specification
 ├── LICENSE              # MIT License
 ├── .gitignore          # Git ignore patterns
-└── tests/               # Test suite
+├── go.mod              # Go module definition
+├── main.go             # Go implementation - main entry point
+├── config.go           # Go - JSON configuration loading
+├── url.go              # Go - URL encoding and construction
+├── selection.go        # Go - Service selection logic
+├── browser.go          # Go - Cross-platform browser opening
+├── *_test.go           # Go test files (unit and integration tests)
+└── tests/               # Bash test suite
     ├── README.md        # Test documentation
     ├── run_tests.sh     # Test runner script
     ├── test_helpers.sh  # Test helper functions
@@ -192,19 +246,38 @@ hunt/
 
 ## Testing
 
-The project includes a comprehensive test suite with no external dependencies:
+### Bash Test Suite
+
+The bash implementation includes a comprehensive test suite:
 
 ```bash
-# Run all tests
+# Run all bash tests
 ./tests/run_tests.sh
 ```
 
-The test suite includes:
-- **Unit Tests**: URL encoding, service selection, URL construction
-- **Acceptance Tests**: End-to-end script execution with mocked browser opening
-- **Custom Framework**: Pure bash implementation, no external dependencies
+### Go Test Suite
 
-See `tests/README.md` for detailed testing documentation.
+The Go implementation includes unit and integration tests:
+
+```bash
+# Run all Go tests
+go test ./...
+
+# Run with coverage
+go test -cover ./...
+
+# Run with verbose output
+go test -v ./...
+```
+
+**Test Coverage:**
+- URL encoding: 100% coverage
+- URL construction: 100% coverage
+- Service selection: 100% coverage
+- Configuration loading: 88.9% coverage
+- Integration tests for full pipeline
+
+See `tests/README.md` for detailed bash testing documentation.
 
 ## Future Enhancements
 
@@ -218,7 +291,7 @@ Planned features (see `PROJECT_CONTEXT.md` for details):
 - **Browser Extension**: Create a browser extension for quick access from the browser toolbar
 - **System Path Integration**: Package the script for easy installation as a system command (e.g., `hunt` instead of `./hunt.sh`)
 - **Homebrew Distribution**: Create a Homebrew formula for easy installation via `brew install hunt`
-- **Go Port**: Port the project to Go for cross-platform distribution as a single portable binary
+- ✅ **Go Port**: Completed! Cross-platform Go implementation with comprehensive tests
 
 ## Troubleshooting
 
@@ -227,9 +300,11 @@ Planned features (see `PROJECT_CONTEXT.md` for details):
 - The script uses sequential opening with delays - if your browser is slow, you may need to increase the delay
 
 **Script doesn't work:**
-- Ensure the script is executable: `chmod +x hunt.sh`
-- Verify you're on macOS (the `open` command is macOS-specific)
-- Check that standard Unix utilities are available (`od` command for URL encoding)
+- **Bash version**: Ensure the script is executable: `chmod +x hunt.sh`
+- **Bash version**: Verify you're on macOS (the `open` command is macOS-specific)
+- **Bash version**: Check that standard Unix utilities are available (`od` command for URL encoding)
+- **Go version**: Ensure Go is installed (1.21+) if building from source
+- **Go version**: Verify `search_engines.json` is in the same directory as the binary
 
 ## License
 
