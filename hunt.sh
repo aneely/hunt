@@ -5,7 +5,7 @@
 
 # Get the directory where the script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SEARCH_ENGINES_JSON="${SCRIPT_DIR}/search_engines.json"
+SEARCH_ENGINES_JSON="${SCRIPT_DIR}/search_engines_legacy.json"
 
 # Function to load search engines from JSON file
 load_search_engines_from_json() {

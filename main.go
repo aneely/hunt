@@ -13,18 +13,20 @@ func main() {
 	// Check for subcommand BEFORE parsing flags (for backward compatibility)
 	// Subcommands come before flags: hunt shop -i "laptop"
 	var category string
+	categoryExplicitlySet := false
 	if len(os.Args) > 1 && !strings.HasPrefix(os.Args[1], "-") {
 		// First argument is not a flag - check if it's a subcommand
 		subcommand := strings.ToLower(os.Args[1])
 		mappedCategory := mapSubcommandToCategory(subcommand)
 		if mappedCategory != "" {
 			category = mappedCategory
+			categoryExplicitlySet = true
 			// Remove subcommand from os.Args so flag.Parse() works normally
 			os.Args = append(os.Args[:1], os.Args[2:]...)
 		}
 	}
 
-	// Default to "search" category if no subcommand
+	// Default to "search" category if no subcommand (for non-interactive mode)
 	if category == "" {
 		category = "search"
 	}
@@ -106,10 +108,27 @@ func main() {
 	var selectedIndices []int
 
 	if *interactive {
-		selectedIndices, err = handleInteractiveMode(engines)
+		// If category was explicitly set via subcommand, pass it to interactive mode
+		// Otherwise, let user choose category (pass empty string)
+		categoryForInteractive := ""
+		if categoryExplicitlySet {
+			categoryForInteractive = category
+		}
+		selectedEngines, err := handleInteractiveMode(config, categoryForInteractive)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
+		}
+		// Convert selected engines to indices for the engines array
+		selectedIndices = make([]int, len(selectedEngines))
+		for i, selectedEngine := range selectedEngines {
+			// Find the index of this engine in the engines array
+			for j, engine := range engines {
+				if engine.Name == selectedEngine.Name && engine.URL == selectedEngine.URL {
+					selectedIndices[i] = j
+					break
+				}
+			}
 		}
 	} else if *servicesFlag {
 		if len(serviceSelections) == 0 {
@@ -194,8 +213,66 @@ func isServiceSelection(arg string, engines []SearchEngine) bool {
 	return false
 }
 
-// handleInteractiveMode displays the menu and collects user selections
-func handleInteractiveMode(engines []SearchEngine) ([]int, error) {
+// handleInteractiveMode displays category selection first (if not pre-selected), then service selection
+func handleInteractiveMode(config *Config, preSelectedCategory string) ([]SearchEngine, error) {
+	var selectedCategory string
+	var engines []SearchEngine
+	reader := bufio.NewReader(os.Stdin)
+
+	// Step 1: Category selection (skip if category was pre-selected via subcommand)
+	if preSelectedCategory == "" {
+		// Show category selection
+		categories := make([]string, 0, len(config.Categories))
+		for cat := range config.Categories {
+			categories = append(categories, cat)
+		}
+
+		// Sort categories for consistent display (search first, then alphabetical)
+		sortedCategories := make([]string, 0, len(categories))
+		if _, ok := config.Categories["search"]; ok {
+			sortedCategories = append(sortedCategories, "search")
+		}
+		for _, cat := range categories {
+			if cat != "search" {
+				sortedCategories = append(sortedCategories, cat)
+			}
+		}
+
+		fmt.Println("Select category:")
+		fmt.Println()
+		for i, cat := range sortedCategories {
+			displayName := formatCategoryName(cat)
+			fmt.Printf("  %d) %s\n", i+1, displayName)
+		}
+
+		fmt.Println()
+		fmt.Print("Enter category number: ")
+
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			return nil, fmt.Errorf("failed to read input: %w", err)
+		}
+
+		input = strings.TrimSpace(input)
+		categoryNum, err := strconv.Atoi(input)
+		if err != nil || categoryNum < 1 || categoryNum > len(sortedCategories) {
+			return nil, fmt.Errorf("invalid category selection: %q", input)
+		}
+
+		selectedCategory = sortedCategories[categoryNum-1]
+	} else {
+		// Category was pre-selected via subcommand
+		selectedCategory = preSelectedCategory
+	}
+
+	engines = config.GetEnginesByCategory(selectedCategory)
+	if len(engines) == 0 {
+		return nil, fmt.Errorf("no services found for category %q", selectedCategory)
+	}
+
+	fmt.Println()
+
+	// Step 2: Service selection
 	fmt.Println("Select services to use (enter numbers, separated by spaces):")
 	fmt.Println()
 
@@ -211,7 +288,6 @@ func handleInteractiveMode(engines []SearchEngine) ([]int, error) {
 	fmt.Print("Enter selection(s): ")
 
 	// Read user input
-	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
 	if err != nil {
 		return nil, fmt.Errorf("failed to read input: %w", err)
@@ -226,14 +302,36 @@ func handleInteractiveMode(engines []SearchEngine) ([]int, error) {
 		return nil, err
 	}
 
+	// Convert indices to engines
+	selectedEngines := make([]SearchEngine, len(indices))
+	for i, idx := range indices {
+		selectedEngines[i] = engines[idx]
+	}
+
 	fmt.Println()
 	fmt.Println("Selected services:")
-	for _, idx := range indices {
-		fmt.Printf("  - %s\n", engines[idx].Name)
+	for _, engine := range selectedEngines {
+		fmt.Printf("  - %s\n", engine.Name)
 	}
 	fmt.Println()
 
-	return indices, nil
+	return selectedEngines, nil
+}
+
+// formatCategoryName formats a category name for display
+func formatCategoryName(category string) string {
+	switch category {
+	case "search":
+		return "Search Engines"
+	case "shop":
+		return "Shopping Sites"
+	default:
+		// Capitalize first letter and add "s" if needed
+		if len(category) == 0 {
+			return category
+		}
+		return strings.ToUpper(string(category[0])) + category[1:] + " Services"
+	}
 }
 
 func printUsage() {
