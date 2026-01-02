@@ -68,7 +68,11 @@
 - No external dependencies required (pure bash solution)
 
 ### Browser Opening Strategy
-- Uses macOS `open` command (native, works with default browser)
+- **Bash version**: Uses macOS `open` command (native, works with default browser)
+- **Go version**: Cross-platform browser opening:
+  - macOS: `open` command
+  - Linux: `xdg-open` command
+  - Windows: `cmd /c start` command
 - Sequential opening with 0.3 second delays between each URL
 - Delays help ensure browser processes each URL as a separate tab
 - **Test Mode**: When `HUNT_TEST_MODE` environment variable is set, sleep delays are skipped for faster test execution
