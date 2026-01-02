@@ -260,6 +260,7 @@ hunt/
 6. **Service Categories**: Group services by category and allow category-based selection
 7. **Custom Delays**: Make delay configurable or adaptive
 8. **Service Aliases**: Support shorter aliases for service names (e.g., `ddg` for DuckDuckGo)
+9. **Multi-Platform Testing**: Expand GitHub Actions workflow to test Go implementation on multiple platforms (macOS, Linux, Windows) to ensure cross-platform compatibility and catch platform-specific issues early
 9. **Browser Extension**: Create a browser extension (Chrome, Firefox, Safari) that provides quick access to Hunt from the browser toolbar. Users could select text on a webpage and search across engines, or use a popup interface to enter search terms. This would make Hunt accessible without opening a terminal.
 10. **System Path Integration**: Package the script for easy installation as a system command. Create an installation script or Makefile that:
     - Copies `hunt.sh` to `/usr/local/bin/hunt` (or `~/.local/bin/hunt`)

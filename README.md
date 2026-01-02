@@ -292,6 +292,7 @@ Planned features (see `PROJECT_CONTEXT.md` for details):
 - **System Path Integration**: Package the script for easy installation as a system command (e.g., `hunt` instead of `./hunt.sh`)
 - **Homebrew Distribution**: Create a Homebrew formula for easy installation via `brew install hunt`
 - ✅ **Go Port**: Completed! Cross-platform Go implementation with comprehensive tests
+- **Multi-Platform Testing**: Expand GitHub Actions workflow to test Go implementation on multiple platforms (macOS, Linux, Windows) to ensure cross-platform compatibility
 
 ## Troubleshooting
 
