@@ -190,6 +190,9 @@ hunt/
 ├── initial-sketch.md       # Original project specification with all service examples
 ├── LICENSE                 # MIT License
 ├── .gitignore             # Git ignore patterns for OS and editor files
+├── .github/               # GitHub configuration
+│   └── workflows/         # GitHub Actions workflows
+│       └── tests.yml      # CI/CD test workflow
 ├── go.mod                  # Go module definition
 ├── main.go                 # Go implementation - main entry point
 ├── config.go               # Go - JSON configuration loading
@@ -278,18 +281,18 @@ hunt/
 7. **Custom Delays**: Make delay configurable or adaptive
 8. **Service Aliases**: Support shorter aliases for service names (e.g., `ddg` for DuckDuckGo)
 9. **Multi-Platform Testing**: Expand GitHub Actions workflow to test Go implementation on multiple platforms (macOS, Linux, Windows) to ensure cross-platform compatibility and catch platform-specific issues early
-9. **Browser Extension**: Create a browser extension (Chrome, Firefox, Safari) that provides quick access to Hunt from the browser toolbar. Users could select text on a webpage and search across engines, or use a popup interface to enter search terms. This would make Hunt accessible without opening a terminal.
-10. **System Path Integration**: Package the script for easy installation as a system command. Create an installation script or Makefile that:
+10. **Browser Extension**: Create a browser extension (Chrome, Firefox, Safari) that provides quick access to Hunt from the browser toolbar. Users could select text on a webpage and search across engines, or use a popup interface to enter search terms. This would make Hunt accessible without opening a terminal.
+11. **System Path Integration**: Package the script for easy installation as a system command. Create an installation script or Makefile that:
     - Copies `hunt.sh` to `/usr/local/bin/hunt` (or `~/.local/bin/hunt`)
     - Ensures the script is executable
     - Optionally creates a symlink
     - Allows users to run `hunt "search term"` from anywhere instead of `./hunt.sh`
-11. **Homebrew Distribution**: Create a Homebrew formula for macOS users to install Hunt via `brew install hunt`. This would:
+12. **Homebrew Distribution**: Create a Homebrew formula for macOS users to install Hunt via `brew install hunt`. This would:
     - Provide a standard installation method for macOS users
     - Handle path setup automatically
     - Enable easy updates via `brew upgrade hunt`
     - Follow Homebrew conventions for formula structure and dependencies
-12. ✅ **Go Port**: Completed! Ported the project to Go for cross-platform distribution as a single portable binary. Benefits include:
+13. ✅ **Go Port**: Completed! Ported the project to Go for cross-platform distribution as a single portable binary. Benefits include:
     - Single binary distribution (no dependencies)
     - Cross-platform support (macOS, Linux, Windows)
     - Better performance and error handling
@@ -330,6 +333,36 @@ hunt/
 - Uses simple grep/sed-based JSON parser (bash 3.2 compatible, no external dependencies)
 - Added support for `space_delimiter` field in JSON to allow engine-specific space encoding (defaults to `+` if not specified)
 - Populates three parallel arrays: `SEARCH_ENGINE_NAMES`, `SEARCH_ENGINE_URLS`, and `SEARCH_ENGINE_DELIMITERS`
+
+### Go Port Implementation
+- Created Go module (`go.mod`) with module path `github.com/aneely/hunt`
+- Implemented modular architecture with separate files for different concerns:
+  - `config.go`: JSON configuration loading with validation
+  - `url.go`: URL encoding with configurable space delimiters
+  - `selection.go`: Service selection resolution and parsing
+  - `browser.go`: Cross-platform browser opening (macOS, Linux, Windows)
+  - `main.go`: CLI argument parsing and orchestration
+- Uses Go standard library only (no external dependencies)
+- JSON parsing uses `encoding/json` package (standard library)
+- URL encoding uses `net/url` package (standard library)
+- Cross-platform browser opening detects OS and uses appropriate command:
+  - macOS: `open` command
+  - Linux: `xdg-open` command
+  - Windows: `cmd /c start` command
+- Comprehensive test suite with 47 test cases covering unit and integration scenarios
+- Test coverage: 33.3% overall, with core functions at 88-100% coverage
+
+### GitHub Actions CI/CD Implementation
+- Created GitHub Actions workflow (`.github/workflows/tests.yml`)
+- Runs automatically on every push and pull request
+- Two parallel jobs:
+  - **bash-tests**: Runs bash test suite on macOS
+  - **go-tests**: Runs Go test suite on Ubuntu (Linux)
+- Go tests include:
+  - Verbose test execution (`go test -v ./...`)
+  - Coverage reporting (`go test -cover ./...`)
+  - Build verification (`go build -o hunt .`)
+- Workflow verification is part of standard development process (see Development Workflow section)
 
 ### Key Debugging Moments
 - **Issue**: Only YouTube (last in array) was opening
@@ -389,9 +422,14 @@ Examples:
 - **od command**: Used for URL encoding (standard Unix utility, available on macOS)
 
 ### Development Dependencies
-- **None required**: The test suite uses a custom, dependency-free bash framework
+- **Bash version**: No external dependencies required
+  - The test suite uses a custom, dependency-free bash framework
   - No external tools or libraries needed
   - Pure bash implementation for maximum portability
+- **Go version**: Go 1.21+ required for building and testing
+  - Standard library only - no external dependencies
+  - Uses Go's built-in testing package
+  - Cross-platform development supported
 
 ## Repository & Development Setup
 
@@ -446,10 +484,31 @@ The project includes comprehensive test suites for both implementations:
 
 ### Running Tests
 
+**Bash Tests:**
 ```bash
-# Run all tests (no dependencies required)
+# Run all bash tests
 ./tests/run_tests.sh
 ```
+
+**Go Tests:**
+```bash
+# Run all Go tests
+go test ./...
+
+# Run with verbose output
+go test -v ./...
+
+# Run with coverage
+go test -cover ./...
+
+# Run specific test file
+go test -v ./url_test.go ./url.go
+```
+
+**CI/CD:**
+- Tests run automatically on every push and pull request via GitHub Actions
+- Both bash and Go test suites must pass for workflow to succeed
+- See Development Workflow section for verification steps
 
 ### Test Coverage
 
@@ -472,7 +531,15 @@ See `tests/README.md` for detailed testing documentation.
 
 ## Recent Work & Session Context
 
-### Documentation Updates (Latest Session)
+### Go Port & CI/CD Implementation (Latest Sessions)
+- ✅ Implemented Go port with full feature parity to bash version
+- ✅ Created comprehensive test suite (47 test cases, 88-100% coverage on core functions)
+- ✅ Set up GitHub Actions CI/CD workflow for automated testing
+- ✅ Added development workflow documentation for GitHub Actions verification
+- ✅ Updated documentation (README.md, PROJECT_CONTEXT.md) for both implementations
+- ✅ Added multi-platform testing to future enhancements
+
+### Documentation Updates (Previous Sessions)
 - ✅ Updated PROJECT_CONTEXT.md to reflect current implementation (space_delimiter feature, numbering fixes)
 - ✅ Added future enhancements: browser extension, system path integration, Homebrew distribution, Go port
 - ✅ Added .gitignore file for common OS and editor files
