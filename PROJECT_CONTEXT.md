@@ -30,6 +30,23 @@
 
 ## Technical Decisions & Constraints
 
+### Dependency Philosophy
+- **Preference**: Prefer dependency-free implementations using standard bash and Unix utilities
+- **Rationale**: Reduces installation complexity, improves portability, and keeps the codebase self-contained
+- **Exceptions**: Dependencies are acceptable when they provide:
+  - Well-tested solutions for problems outside the application's core domain
+  - Performance optimizations unlikely to be achieved through independent efforts
+- **Decision Process**: When considering a dependency, evaluate:
+  1. Can we solve this with standard tools (bash, sed, awk, grep, etc.)?
+  2. Does the dependency solve a problem outside our domain (e.g., JSON parsing, HTTP requests)?
+  3. Would the dependency provide significant performance benefits we can't achieve ourselves?
+  4. What is the maintenance burden vs. benefit?
+- **Examples**:
+  - ✅ **No dependency**: Custom bash test framework (simple, maintainable, no external requirements)
+  - ✅ **No dependency**: Bash-native URL encoding (sufficient for our needs, no external tools)
+  - ⚠️ **Could use dependency**: JSON parsing (we use grep/sed, but a JSON parser library could be considered if needs grow)
+  - ⚠️ **Could use dependency**: Test framework like BATS (we chose custom solution for zero dependencies)
+
 ### Bash Version Compatibility
 - **Critical Decision**: macOS ships with bash 3.2.57 by default, which does NOT support associative arrays (requires bash 4.0+)
 - **Solution**: Use parallel arrays (`SEARCH_ENGINE_NAMES`, `SEARCH_ENGINE_URLS`, and `SEARCH_ENGINE_DELIMITERS`) instead of associative arrays
@@ -148,11 +165,12 @@ hunt/
 ├── .gitignore             # Git ignore patterns for OS and editor files
 └── tests/                  # Test suite
     ├── README.md           # Test documentation
-    ├── helpers.bash        # Test helper functions
+    ├── test_helpers.sh     # Test helper functions and assertions
     ├── run_tests.sh        # Test runner script
-    ├── unit_*.bats         # Unit tests for individual functions
-    ├── integration_*.bats  # Integration tests
-    └── acceptance_*.bats   # End-to-end acceptance tests
+    ├── test_url_encode.sh  # URL encoding unit tests
+    ├── test_service_selection.sh  # Service selection unit tests
+    ├── test_url_construction.sh   # URL construction unit tests
+    └── test_acceptance.sh  # End-to-end acceptance tests
 ```
 
 ### Script Flow
@@ -330,8 +348,9 @@ Examples:
 - **od command**: Used for URL encoding (standard Unix utility, available on macOS)
 
 ### Development Dependencies
-- **BATS (Bash Automated Testing System)**: Required for running tests
-  - Install via: `brew install bats-core` (macOS) or see `tests/README.md` for other platforms
+- **None required**: The test suite uses a custom, dependency-free bash framework
+  - No external tools or libraries needed
+  - Pure bash implementation for maximum portability
 
 ## Repository & Development Setup
 
@@ -362,20 +381,17 @@ Examples:
 
 ### Test Suite
 
-The project includes a comprehensive test suite using BATS (Bash Automated Testing System):
+The project includes a comprehensive test suite using a custom, dependency-free bash framework:
 
-- **Unit Tests**: Test individual functions (URL encoding, service selection, JSON loading)
-- **Integration Tests**: Test argument parsing and component interactions
+- **Unit Tests**: Test individual functions (URL encoding, service selection, URL construction)
 - **Acceptance Tests**: End-to-end tests with mocked browser opening
+- **No external dependencies**: Pure bash implementation with simple assertion helpers
 
 ### Running Tests
 
 ```bash
-# Run all tests
+# Run all tests (no dependencies required)
 ./tests/run_tests.sh
-
-# Or using BATS directly
-bats tests/
 ```
 
 ### Test Coverage
