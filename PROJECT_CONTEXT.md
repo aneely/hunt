@@ -18,6 +18,14 @@
 - ✅ Automatic detection of search term when using services flag
 - ✅ Duplicate service selection handling
 
+### Go Port Implementation (Completed)
+- ✅ Go module structure with proper organization
+- ✅ Cross-platform support (macOS, Linux, Windows)
+- ✅ Full feature parity with bash version
+- ✅ Comprehensive test suite (unit and integration tests)
+- ✅ Better error handling and validation
+- ✅ Single portable binary distribution
+
 ### Search Engines Currently Supported
 1. Bing
 2. DuckDuckGo
