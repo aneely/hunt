@@ -8,8 +8,8 @@ on:
     branches: ['*']
 
 jobs:
-  test:
-    name: Run Test Suite
+  bash-tests:
+    name: Run Bash Test Suite
     runs-on: macos-latest
 
     steps:
@@ -21,5 +21,27 @@ jobs:
           chmod +x tests/*.sh
           chmod +x hunt.sh
 
-      - name: Run test suite
+      - name: Run bash test suite
         run: ./tests/run_tests.sh
+
+  go-tests:
+    name: Run Go Test Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Run Go tests
+        run: go test -v ./...
+
+      - name: Run Go tests with coverage
+        run: go test -cover ./...
+
+      - name: Verify Go build
+        run: go build -o hunt .
