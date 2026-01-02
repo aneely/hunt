@@ -163,9 +163,11 @@ You can specify engines by:
 - **Bash Compatibility**: Uses parallel arrays instead of associative arrays for compatibility with bash 3.2 (macOS default)
 - **Service Name Matching**: Case-insensitive matching for service names (e.g., `bing`, `Bing`, `BING` all work)
 - **Automatic Detection**: The `-s` flag automatically detects when service selections end and the search term begins
-- **URL Encoding**: Handles spaces, special characters, and Unicode properly
+- **URL Encoding**: Handles spaces, special characters, and Unicode properly using bash-native implementation
 - **Sequential Opening**: Opens URLs one at a time with 0.3 second delays to ensure reliable tab creation
 - **Duplicate Handling**: Automatically removes duplicate service selections
+- **Test Mode**: Supports `HUNT_TEST_MODE` environment variable to skip delays during automated testing
+- **Modular Functions**: Code organized into testable functions (URL encoding, service selection, URL construction)
 
 ## Project Structure
 
@@ -177,8 +179,32 @@ hunt/
 ├── PROJECT_CONTEXT.md   # Detailed project documentation
 ├── initial-sketch.md   # Original project specification
 ├── LICENSE              # MIT License
-└── .gitignore          # Git ignore patterns
+├── .gitignore          # Git ignore patterns
+└── tests/               # Test suite
+    ├── README.md        # Test documentation
+    ├── run_tests.sh     # Test runner script
+    ├── test_helpers.sh  # Test helper functions
+    ├── test_url_encode.sh  # URL encoding unit tests
+    ├── test_service_selection.sh  # Service selection unit tests
+    ├── test_url_construction.sh   # URL construction unit tests
+    └── test_acceptance.sh  # End-to-end acceptance tests
 ```
+
+## Testing
+
+The project includes a comprehensive test suite with no external dependencies:
+
+```bash
+# Run all tests
+./tests/run_tests.sh
+```
+
+The test suite includes:
+- **Unit Tests**: URL encoding, service selection, URL construction
+- **Acceptance Tests**: End-to-end script execution with mocked browser opening
+- **Custom Framework**: Pure bash implementation, no external dependencies
+
+See `tests/README.md` for detailed testing documentation.
 
 ## Future Enhancements
 

@@ -63,6 +63,7 @@
 - Uses macOS `open` command (native, works with default browser)
 - Sequential opening with 0.3 second delays between each URL
 - Delays help ensure browser processes each URL as a separate tab
+- **Test Mode**: When `HUNT_TEST_MODE` environment variable is set, sleep delays are skipped for faster test execution
 - **Known Limitation**: If browser isn't running or has issues, some tabs might not open
 
 ### Code Organization & Architecture
@@ -79,6 +80,7 @@
   - `is_service_selection()` - Validates if an argument is a valid service selection
   - `resolve_service_selection()` - Resolves a service name or number to an array index
   - `parse_service_selections()` - Parses and validates service selections, populates SELECTED_INDICES
+  - `build_search_urls()` - Constructs search URLs for given indices (extracted for testability, outputs URLs to stdout)
 
 ## Development Guidelines
 
@@ -169,7 +171,7 @@ hunt/
     ├── run_tests.sh        # Test runner script
     ├── test_url_encode.sh  # URL encoding unit tests
     ├── test_service_selection.sh  # Service selection unit tests
-    ├── test_url_construction.sh   # URL construction unit tests
+    ├── test_url_construction.sh   # URL construction unit tests (direct testing of build_search_urls)
     └── test_acceptance.sh  # End-to-end acceptance tests
 ```
 
@@ -189,6 +191,8 @@ hunt/
 
 **JSON-Based Configuration:**
 - Search engines are defined in `search_engines.json` file
+- Script automatically detects its own directory using `SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"` to locate the JSON file
+- JSON file path: `${SCRIPT_DIR}/search_engines.json` (ensures script works regardless of current working directory)
 - Script loads engines from JSON at startup using `load_search_engines_from_json()` function
 - JSON structure: array of objects with `name`, `url`, and `space_delimiter` fields
   - `name`: Display name of the search engine
@@ -196,12 +200,15 @@ hunt/
   - `space_delimiter`: Character(s) to use for spaces in URLs (`+` or `%20`, defaults to `+` if not specified)
 - Parsed into parallel arrays: `SEARCH_ENGINE_NAMES`, `SEARCH_ENGINE_URLS`, and `SEARCH_ENGINE_DELIMITERS`
 - Iterate using: `for i in "${!SEARCH_ENGINE_NAMES[@]}"`
+- Error handling: Script exits with error if JSON file is missing or malformed
 
 **URL Construction:**
+- Uses `build_search_urls()` function for testability (extracted function that outputs URLs to stdout)
 - Base URL from `SEARCH_ENGINE_URLS[$i]`
 - Space delimiter from `SEARCH_ENGINE_DELIMITERS[$i]` (used during URL encoding)
 - Encode search term with engine-specific delimiter: `encoded_term=$(url_encode "$SEARCH_TERM" "$delimiter")`
 - Append encoded search term: `url="${url_base}${encoded_term}"`
+- Function outputs one URL per line, allowing for direct testing without browser opening
 - Note: Different engines use different query parameter names (`q`, `p`, `search_query`) and may prefer different space delimiters
 
 **Service Selection Logic:**
@@ -384,8 +391,13 @@ Examples:
 The project includes a comprehensive test suite using a custom, dependency-free bash framework:
 
 - **Unit Tests**: Test individual functions (URL encoding, service selection, URL construction)
+  - `test_url_encode.sh` - Tests URL encoding function with various inputs
+  - `test_service_selection.sh` - Tests service selection validation and resolution
+  - `test_url_construction.sh` - Tests URL construction using `build_search_urls()` function
 - **Acceptance Tests**: End-to-end tests with mocked browser opening
+  - `test_acceptance.sh` - Full script execution tests with mocked `open` command
 - **No external dependencies**: Pure bash implementation with simple assertion helpers
+- **Test Mode**: Script supports `HUNT_TEST_MODE` environment variable to skip sleep delays during testing
 
 ### Running Tests
 
@@ -398,11 +410,12 @@ The project includes a comprehensive test suite using a custom, dependency-free 
 
 - URL encoding with various inputs (spaces, special characters, unicode)
 - Service selection validation (numbers, names, case-insensitivity)
+- URL construction for all search engines (direct testing via `build_search_urls()`)
 - JSON configuration loading and validation
 - End-to-end script execution with all modes
 - Argument parsing and flag handling
-- URL construction for all search engines
 - Error handling (missing search term, invalid services)
+- Test mode optimization (HUNT_TEST_MODE skips sleep delays for faster test execution)
 
 See `tests/README.md` for detailed testing documentation.
 
