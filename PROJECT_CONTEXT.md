@@ -106,6 +106,34 @@
   - Editing files using safe editing tools (when explicitly requested)
   - Running the hunt.sh script for testing (non-destructive execution)
 
+### Security & Secrets Management Policy
+- **CRITICAL**: AI assistants working on this project must NOT commit any secrets or personally identifying information (PII) to the repository
+- **What NOT to commit**:
+  - API tokens, API keys, or authentication credentials
+  - Passwords or password hashes
+  - Private keys (SSH keys, GPG keys, etc.)
+  - Access tokens or session tokens
+  - Database connection strings with credentials
+  - Personal information (email addresses, phone numbers, addresses)
+  - Any sensitive configuration data that should remain private
+- **What IS acceptable to commit**:
+  - Public-facing URLs (GET URLs, public endpoints)
+  - Public usernames or identifiers (when they are intentionally public)
+  - Example configurations without real credentials
+  - Search engine URLs and query parameters (these are public-facing)
+- **Required workflow**: Before committing any file that might contain sensitive information, the AI assistant must:
+  1. Review the file contents for any secrets or PII
+  2. If secrets are found, either:
+     - Remove them and use environment variables or config files (excluded via .gitignore)
+     - Use placeholder values with clear documentation
+     - Ask the user how to handle the sensitive information
+  3. Verify that `.gitignore` excludes any files containing secrets (e.g., `.env`, `config.local.json`)
+- **Best practices**:
+  - Use environment variables for secrets (documented but not committed)
+  - Use `.gitignore` to exclude files containing secrets
+  - Use placeholder/example values in committed configuration files
+  - Document where real values should be configured (in README or setup instructions)
+
 ## Architecture
 
 ### File Structure
