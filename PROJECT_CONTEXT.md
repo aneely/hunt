@@ -145,7 +145,14 @@ hunt/
 ├── PROJECT_CONTEXT.md      # This file - project documentation
 ├── initial-sketch.md       # Original project specification with all service examples
 ├── LICENSE                 # MIT License
-└── .gitignore             # Git ignore patterns for OS and editor files
+├── .gitignore             # Git ignore patterns for OS and editor files
+└── tests/                  # Test suite
+    ├── README.md           # Test documentation
+    ├── helpers.bash        # Test helper functions
+    ├── run_tests.sh        # Test runner script
+    ├── unit_*.bats         # Unit tests for individual functions
+    ├── integration_*.bats  # Integration tests
+    └── acceptance_*.bats   # End-to-end acceptance tests
 ```
 
 ### Script Flow
@@ -317,9 +324,14 @@ Examples:
 
 ## Dependencies
 
+### Runtime Dependencies
 - **Bash**: 3.2+ (macOS default is sufficient)
 - **macOS `open` command**: Native command for opening URLs
 - **od command**: Used for URL encoding (standard Unix utility, available on macOS)
+
+### Development Dependencies
+- **BATS (Bash Automated Testing System)**: Required for running tests
+  - Install via: `brew install bats-core` (macOS) or see `tests/README.md` for other platforms
 
 ## Repository & Development Setup
 
@@ -346,7 +358,39 @@ Examples:
 - `LICENSE`: MIT License with copyright 2024 Andrew Neely
 - All project files are tracked in git except those matching `.gitignore` patterns
 
-## Testing Notes
+## Testing
+
+### Test Suite
+
+The project includes a comprehensive test suite using BATS (Bash Automated Testing System):
+
+- **Unit Tests**: Test individual functions (URL encoding, service selection, JSON loading)
+- **Integration Tests**: Test argument parsing and component interactions
+- **Acceptance Tests**: End-to-end tests with mocked browser opening
+
+### Running Tests
+
+```bash
+# Run all tests
+./tests/run_tests.sh
+
+# Or using BATS directly
+bats tests/
+```
+
+### Test Coverage
+
+- URL encoding with various inputs (spaces, special characters, unicode)
+- Service selection validation (numbers, names, case-insensitivity)
+- JSON configuration loading and validation
+- End-to-end script execution with all modes
+- Argument parsing and flag handling
+- URL construction for all search engines
+- Error handling (missing search term, invalid services)
+
+See `tests/README.md` for detailed testing documentation.
+
+### Manual Testing Notes
 
 - Tested on macOS (darwin 24.6.0)
 - Default browser behavior: Opens URLs in new tabs when browser is already running

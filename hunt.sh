@@ -370,6 +370,8 @@ main() {
     fi
 
     # Loop over selected search engines and open each URL
+    # NOTE: URL construction logic (lines 375-380) could be extracted for direct testing
+    # if we want to test URL construction without full script execution (optimization 2)
     for idx in "${SELECTED_INDICES[@]}"; do
         engine="${SEARCH_ENGINE_NAMES[$idx]}"
         url_base="${SEARCH_ENGINE_URLS[$idx]}"
@@ -382,7 +384,10 @@ main() {
         echo "Opening $engine..."
         open "$url" 2>/dev/null
         # Small delay to ensure browser processes each URL as a separate tab
-        sleep 0.3
+        # Skip delay in test mode for faster test execution (optimization 1)
+        if [ -z "$HUNT_TEST_MODE" ]; then
+            sleep 0.3
+        fi
     done
 
     echo ""
