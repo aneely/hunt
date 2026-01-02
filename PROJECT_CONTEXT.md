@@ -92,6 +92,23 @@
 
 ## Development Guidelines
 
+### Development Workflow
+- **GitHub Actions Verification**: After completing a set of enhancements and pushing to the repository, always verify that the GitHub Actions workflow runs successfully
+- **Verification Steps**:
+  1. Use `gh run list` to view recent workflow runs
+  2. Use `gh run view` to check the status of the most recent run
+  3. Confirm both bash and Go test suites pass (if applicable)
+  4. Verify all jobs completed successfully before considering the work complete
+- **Rationale**: Ensures that changes don't break existing functionality and that CI/CD pipeline is working correctly
+- **Example Commands**:
+  ```bash
+  # List recent workflow runs
+  gh run list --limit 5
+  
+  # View details of most recent run
+  gh run list --limit 1 --json databaseId --jq '.[0].databaseId' | xargs -I {} gh run view {} --json name,status,conclusion,jobs
+  ```
+
 ### Git Operations - Destructive Changes Policy
 - **CRITICAL**: AI assistants working on this project must NOT commit destructive git changes without explicit user confirmation
 - **Destructive changes include**:
