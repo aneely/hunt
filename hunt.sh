@@ -183,6 +183,28 @@ if [ "$INTERACTIVE" = true ] && [ "$SERVICES_FLAG" = true ]; then
     exit 1
 fi
 
+# Build search URLs for given indices
+# Parameters: $1 = search term, $2... = array indices
+# Outputs: URLs to stdout (one per line)
+# This function is extracted for direct testing (optimization 2)
+build_search_urls() {
+    local search_term="$1"
+    shift
+    local indices=("$@")
+    local urls=()
+    
+    for idx in "${indices[@]}"; do
+        local url_base="${SEARCH_ENGINE_URLS[$idx]}"
+        local delimiter="${SEARCH_ENGINE_DELIMITERS[$idx]}"
+        
+        # Encode search term with engine-specific delimiter
+        local encoded_term=$(url_encode "$search_term" "$delimiter")
+        local url="${url_base}${encoded_term}"
+        
+        echo "$url"
+    done
+}
+
 # URL encode the search term using bash-native encoding
 # Parameters: $1 = search term string, $2 = space delimiter ("+" or "%20")
 url_encode() {
@@ -370,16 +392,11 @@ main() {
     fi
 
     # Loop over selected search engines and open each URL
-    # NOTE: URL construction logic (lines 375-380) could be extracted for direct testing
-    # if we want to test URL construction without full script execution (optimization 2)
-    for idx in "${SELECTED_INDICES[@]}"; do
+    # Use extracted build_search_urls function for testability (optimization 2)
+    local url_index=0
+    while IFS= read -r url; do
+        idx="${SELECTED_INDICES[$url_index]}"
         engine="${SEARCH_ENGINE_NAMES[$idx]}"
-        url_base="${SEARCH_ENGINE_URLS[$idx]}"
-        delimiter="${SEARCH_ENGINE_DELIMITERS[$idx]}"
-        
-        # Encode search term with engine-specific delimiter
-        encoded_term=$(url_encode "$SEARCH_TERM" "$delimiter")
-        url="${url_base}${encoded_term}"
         
         echo "Opening $engine..."
         open "$url" 2>/dev/null
@@ -388,7 +405,8 @@ main() {
         if [ -z "$HUNT_TEST_MODE" ]; then
             sleep 0.3
         fi
-    done
+        url_index=$((url_index + 1))
+    done < <(build_search_urls "$SEARCH_TERM" "${SELECTED_INDICES[@]}")
 
     echo ""
     echo "Opened searches for: $SEARCH_TERM"

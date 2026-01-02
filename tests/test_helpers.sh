@@ -181,8 +181,10 @@ load_hunt_functions() {
     local functions_only="${TEST_TMPDIR}/hunt_functions_only.sh"
     
     # Extract lines, skipping the argument parsing section
+    # Include build_search_urls function which is defined before argument parsing
     awk '
         /^# Parse command-line arguments$/ { skip=1; next }
+        /^# Build search URLs for given indices/ { skip=0 }
         /^# URL encode the search term/ { skip=0 }
         skip==0 { print }
     ' "$script_file" | \
