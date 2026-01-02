@@ -114,8 +114,10 @@ hunt/
 ├── hunt.sh                 # Main executable script
 ├── search_engines.json    # Search engine definitions (names and URLs)
 ├── README.md               # User-facing documentation
+├── PROJECT_CONTEXT.md      # This file - project documentation
 ├── initial-sketch.md       # Original project specification with all service examples
-└── PROJECT_CONTEXT.md      # This file - project documentation
+├── LICENSE                 # MIT License
+└── .gitignore             # Git ignore patterns for OS and editor files
 ```
 
 ### Script Flow
@@ -291,11 +293,59 @@ Examples:
 - **macOS `open` command**: Native command for opening URLs
 - **od command**: Used for URL encoding (standard Unix utility, available on macOS)
 
+## Repository & Development Setup
+
+### GitHub Repository
+- **Repository URL**: https://github.com/aneely/hunt
+- **Remote Configuration**: Uses HTTPS (configured for GitHub CLI authentication)
+- **Default Branch**: `main`
+- **License**: MIT License (see LICENSE file)
+
+### Git Configuration
+- Remote is configured to use HTTPS: `https://github.com/aneely/hunt.git`
+- GitHub CLI (`gh`) is authenticated and configured for git operations
+- Git credential helper is set up via `gh auth setup-git` to use GitHub CLI tokens
+- **Note**: SSH authentication was not working, so remote was switched to HTTPS
+
+### Development Environment
+- **OS**: macOS (darwin 24.6.0)
+- **Bash Version**: 3.2+ (macOS default)
+- **GitHub CLI**: Installed and authenticated (account: aneely)
+- **Git**: Configured with GitHub CLI credential helper
+
+### Important Files
+- `.gitignore`: Excludes macOS system files (.DS_Store), editor files (.vscode/, .idea/), temporary files, and local config files
+- `LICENSE`: MIT License with copyright 2024 Andrew Neely
+- All project files are tracked in git except those matching `.gitignore` patterns
+
 ## Testing Notes
 
 - Tested on macOS (darwin 24.6.0)
 - Default browser behavior: Opens URLs in new tabs when browser is already running
 - If browser is not running, first URL opens browser, subsequent URLs open in new tabs
+
+## Recent Work & Session Context
+
+### Documentation Updates (Latest Session)
+- ✅ Updated PROJECT_CONTEXT.md to reflect current implementation (space_delimiter feature, numbering fixes)
+- ✅ Added future enhancements: browser extension, system path integration, Homebrew distribution, Go port
+- ✅ Added .gitignore file for common OS and editor files
+- ✅ Added MIT License to project
+- ✅ Added development guidelines for destructive git operations and bash commands
+- ✅ Updated file structure documentation to include LICENSE and .gitignore
+- ✅ Added repository and development setup information
+
+### Current Repository State
+- All changes are committed and pushed to `origin/main`
+- Repository is in sync with remote (https://github.com/aneely/hunt)
+- Working tree is clean
+- Git remote configured for HTTPS with GitHub CLI authentication
+
+### Important Context for Future Sessions
+- **Git Remote**: Uses HTTPS (not SSH) due to SSH key verification issues
+- **GitHub CLI**: Authenticated and configured for git operations
+- **Development Guidelines**: See "Development Guidelines" section above for policies on destructive operations
+- **Project Status**: MVP complete, documentation up to date, ready for enhancements
 
 ## Next Steps
 

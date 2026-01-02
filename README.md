@@ -172,9 +172,12 @@ You can specify engines by:
 ```
 hunt/
 ├── hunt.sh              # Main executable script
+├── search_engines.json  # Search engine definitions
 ├── README.md            # This file
 ├── PROJECT_CONTEXT.md   # Detailed project documentation
-└── initial-sketch.md   # Original project specification
+├── initial-sketch.md   # Original project specification
+├── LICENSE              # MIT License
+└── .gitignore          # Git ignore patterns
 ```
 
 ## Future Enhancements
