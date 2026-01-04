@@ -25,8 +25,14 @@
 - ✅ Comprehensive test suite (unit and integration tests)
 - ✅ Better error handling and validation
 - ✅ Single portable binary distribution
+- ✅ **Subcommand support** for service categories (`shop` subcommand)
+- ✅ **Category-based JSON structure** with outer keys for categories
+- ✅ **Enhanced interactive mode** with category selection first, then service selection
+- ✅ **Shopping sites support** (5 sites: Amazon, eBay, Gazelle, Slick Deals, Swappa)
 
-### Search Engines Currently Supported
+### Services Currently Supported
+
+**Search Engines (Default Category):**
 1. Bing
 2. DuckDuckGo
 3. Google
@@ -35,6 +41,13 @@
 6. StartPage
 7. Yahoo
 8. YouTube
+
+**Shopping Sites (Go version - `shop` subcommand):**
+1. Amazon
+2. eBay
+3. Gazelle
+4. Slick Deals
+5. Swappa
 
 ## Technical Decisions & Constraints
 
@@ -187,34 +200,37 @@
 ### File Structure
 ```
 hunt/
-├── hunt.sh                 # Bash implementation - main executable script
-├── search_engines.json    # Search engine definitions (names and URLs)
-├── README.md               # User-facing documentation
-├── PROJECT_CONTEXT.md      # This file - project documentation
-├── initial-sketch.md       # Original project specification with all service examples
-├── LICENSE                 # MIT License
-├── .gitignore             # Git ignore patterns for OS and editor files
-├── .github/               # GitHub configuration
-│   └── workflows/         # GitHub Actions workflows
-│       └── tests.yml      # CI/CD test workflow
-├── go.mod                  # Go module definition
-├── main.go                 # Go implementation - main entry point
-├── config.go               # Go - JSON configuration loading
-├── url.go                  # Go - URL encoding and construction
-├── selection.go            # Go - Service selection logic
-├── browser.go              # Go - Cross-platform browser opening
-├── *_test.go               # Go test files (unit and integration tests)
-└── tests/                  # Bash test suite
-    ├── README.md           # Test documentation
-    ├── test_helpers.sh     # Test helper functions and assertions
-    ├── run_tests.sh        # Test runner script
-    ├── test_url_encode.sh  # URL encoding unit tests
-    ├── test_service_selection.sh  # Service selection unit tests
-    ├── test_url_construction.sh   # URL construction unit tests (direct testing of build_search_urls)
-    └── test_acceptance.sh  # End-to-end acceptance tests
+├── hunt.sh                      # Bash implementation - main executable script
+├── search_engines.json          # Go version - Category-based service definitions
+├── search_engines_legacy.json  # Bash version - Array-based service definitions (legacy structure)
+├── README.md                     # User-facing documentation
+├── PROJECT_CONTEXT.md            # This file - project documentation
+├── initial-sketch.md             # Original project specification with all service examples
+├── LICENSE                       # MIT License
+├── .gitignore                   # Git ignore patterns for OS and editor files
+├── .github/                     # GitHub configuration
+│   └── workflows/               # GitHub Actions workflows
+│       └── tests.yml            # CI/CD test workflow
+├── go.mod                        # Go module definition
+├── main.go                       # Go implementation - main entry point
+├── config.go                     # Go - JSON configuration loading
+├── url.go                        # Go - URL encoding and construction
+├── selection.go                  # Go - Service selection logic
+├── browser.go                    # Go - Cross-platform browser opening
+├── *_test.go                     # Go test files (unit and integration tests)
+└── tests/                        # Bash test suite
+    ├── README.md                 # Test documentation
+    ├── test_helpers.sh           # Test helper functions and assertions
+    ├── run_tests.sh              # Test runner script
+    ├── test_url_encode.sh        # URL encoding unit tests
+    ├── test_service_selection.sh # Service selection unit tests
+    ├── test_url_construction.sh  # URL construction unit tests (direct testing of build_search_urls)
+    └── test_acceptance.sh        # End-to-end acceptance tests
 ```
 
 ### Script Flow
+
+**Bash Version:**
 1. **Argument Parsing**: Parse command-line flags (`-i`, `-s`) and collect service selections
 2. **Service Selection**:
    - If `-i` flag: Display interactive menu and collect user selections
@@ -226,12 +242,33 @@ hunt/
 6. **Browser Opening**: Open each URL sequentially with 0.3s delays
 7. **Summary**: Display confirmation of opened searches
 
+**Go Version:**
+1. **Subcommand Parsing**: Check for subcommands (e.g., `shop`) before parsing flags (for backward compatibility)
+2. **Category Selection**: 
+   - If subcommand provided: Use that category (e.g., `shop` → `"shop"` category)
+   - If no subcommand: Default to `"search"` category
+   - In interactive mode: Show category selection menu first (unless subcommand provided)
+3. **Argument Parsing**: Parse command-line flags (`-i`, `-s`) and collect service selections
+4. **Service Selection**:
+   - If `-i` flag: 
+     - If no subcommand: Show category menu, then service menu for selected category
+     - If subcommand provided: Show service menu directly for that category
+   - If `-s` flag: Parse service selections (numbers/names) from command line for the selected category
+   - Otherwise: Select all services in the category by default
+5. **Validation**: Ensure search term is provided and validate service selections
+6. **URL Encoding**: Encode the search term using Go's `net/url` package
+7. **URL Construction**: For each selected service, construct full URL with encoded query
+8. **Browser Opening**: Open each URL sequentially with 0.3s delays (platform-specific commands)
+9. **Summary**: Display confirmation of opened searches
+
 ### Key Implementation Details
 
 **JSON-Based Configuration:**
-- Search engines are defined in `search_engines.json` file
+
+**Bash Version (Legacy Structure):**
+- Uses `search_engines_legacy.json` file with array-based structure
 - Script automatically detects its own directory using `SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"` to locate the JSON file
-- JSON file path: `${SCRIPT_DIR}/search_engines.json` (ensures script works regardless of current working directory)
+- JSON file path: `${SCRIPT_DIR}/search_engines_legacy.json` (ensures script works regardless of current working directory)
 - Script loads engines from JSON at startup using `load_search_engines_from_json()` function
 - JSON structure: array of objects with `name`, `url`, and `space_delimiter` fields
   - `name`: Display name of the search engine
@@ -240,6 +277,29 @@ hunt/
 - Parsed into parallel arrays: `SEARCH_ENGINE_NAMES`, `SEARCH_ENGINE_URLS`, and `SEARCH_ENGINE_DELIMITERS`
 - Iterate using: `for i in "${!SEARCH_ENGINE_NAMES[@]}"`
 - Error handling: Script exits with error if JSON file is missing or malformed
+
+**Go Version (Category-Based Structure):**
+- Uses `search_engines.json` file with category-based structure
+- JSON structure: object with category keys, each containing an array of service objects
+  - Outer keys: category names (e.g., `"search"`, `"shop"`)
+  - Each category contains array of service objects with `name`, `url`, and `space_delimiter` fields
+- Example structure:
+  ```json
+  {
+    "search": [
+      {"name": "Bing", "url": "...", "space_delimiter": "+"},
+      ...
+    ],
+    "shop": [
+      {"name": "Amazon", "url": "...", "space_delimiter": "+"},
+      ...
+    ]
+  }
+  ```
+- Loaded via `LoadConfig()` function which returns `Config` struct with `Categories` map
+- Services filtered by category using `GetEnginesByCategory(category string)` method
+- Default category is `"search"` if no subcommand provided
+- Subcommands map to categories (e.g., `shop` → `"shop"` category)
 
 **URL Construction:**
 - Uses `build_search_urls()` function for testability (extracted function that outputs URLs to stdout)
@@ -535,9 +595,20 @@ See `tests/README.md` for detailed testing documentation.
 
 ## Recent Work & Session Context
 
-### Go Port & CI/CD Implementation (Latest Sessions)
+### Subcommand & Category Support (Latest Session)
+- ✅ Added subcommand support to Go version (`shop` subcommand for shopping sites)
+- ✅ Restructured JSON config to use category-based structure (outer keys for categories)
+- ✅ Created `search_engines_legacy.json` for bash script compatibility (array structure)
+- ✅ Updated bash script to use legacy JSON file, maintaining working state
+- ✅ Enhanced interactive mode: category selection first, then service selection
+- ✅ Added 5 shopping sites (Amazon, eBay, Gazelle, Slick Deals, Swappa)
+- ✅ Subcommands parsed before flags for backward compatibility
+- ✅ Updated all tests to work with new category-based structure
+- ✅ Updated README with subcommand documentation
+
+### Go Port & CI/CD Implementation (Previous Sessions)
 - ✅ Implemented Go port with full feature parity to bash version
-- ✅ Created comprehensive test suite (47 test cases, 88-100% coverage on core functions)
+- ✅ Created comprehensive test suite (47+ test cases, 88-100% coverage on core functions)
 - ✅ Set up GitHub Actions CI/CD workflow for automated testing
 - ✅ Added development workflow documentation for GitHub Actions verification
 - ✅ Updated documentation (README.md, PROJECT_CONTEXT.md) for both implementations
@@ -557,22 +628,41 @@ See `tests/README.md` for detailed testing documentation.
 - Repository is in sync with remote (https://github.com/aneely/hunt)
 - Working tree is clean
 - Git remote configured for HTTPS with GitHub CLI authentication
+- **JSON File Split**: 
+  - `search_engines.json` - Go version (category-based structure)
+  - `search_engines_legacy.json` - Bash version (array structure)
+- Both implementations working and tested
 
 ### Important Context for Future Sessions
 - **Git Remote**: Uses HTTPS (not SSH) due to SSH key verification issues
 - **GitHub CLI**: Authenticated and configured for git operations
 - **Development Guidelines**: See "Development Guidelines" section above for policies on destructive operations
-- **Project Status**: MVP complete, documentation up to date, ready for enhancements
+- **Project Status**: MVP complete, subcommand support added (Go version), documentation up to date
+- **JSON File Strategy**: 
+  - Go version uses `search_engines.json` with category-based structure (actively developed)
+  - Bash version uses `search_engines_legacy.json` with array structure (maintained for compatibility)
+  - This allows Go version to iterate forward while bash version remains stable
+- **Subcommand Implementation**:
+  - Subcommands parsed BEFORE flags for backward compatibility
+  - Default behavior (no subcommand) uses `"search"` category
+  - Interactive mode shows category selection first (unless subcommand provided)
+  - Subcommands map to categories via `mapSubcommandToCategory()` function
 
 ## Next Steps
 
 1. ✅ ~~Test with all 8 search engines to verify all tabs open correctly~~ (Completed)
 2. ✅ ~~Add configuration support for selecting which services to use~~ (Completed - via `-i` and `-s` flags)
 3. ✅ ~~Port to Go for cross-platform support~~ (Completed - full feature parity with comprehensive tests)
-4. Consider adding other service categories from `initial-sketch.md` (Reddit, StackOverflow, Wikipedia, etc.)
-5. Improve error handling and user feedback
-6. Add service aliases for shorter names (e.g., `ddg` for DuckDuckGo)
-7. Consider service category grouping and category-based selection
-8. Create Homebrew formula for Go binary distribution
-9. Add system path integration for easier installation
+4. ✅ ~~Add subcommand support for service categories~~ (Completed - Go version supports `shop` subcommand)
+5. ✅ ~~Add shopping sites category~~ (Completed - 5 shopping sites added)
+6. ✅ ~~Enhance interactive mode with category selection~~ (Completed - Go version)
+7. Add other service categories from `initial-sketch.md`:
+   - Crowd Source: Reddit, StackOverflow, Wikipedia
+   - Tech News: Hacker News, Lobste.rs, Engadget, The Verge
+   - News: NPR, NYT, WSJ
+8. Add subcommand support to bash version (currently Go-only)
+9. Improve error handling and user feedback
+10. Add service aliases for shorter names (e.g., `ddg` for DuckDuckGo)
+11. Create Homebrew formula for Go binary distribution
+12. Add system path integration for easier installation
 
