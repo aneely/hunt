@@ -396,6 +396,7 @@ See `tests/README.md` for detailed bash testing documentation.
 Planned features (see `PROJECT_CONTEXT.md` for details):
 
 - ✅ **Subcommands**: Completed! Go version now supports subcommands for different service categories
+- **Help Flag**: Add `--help`/`-h` flag that displays usage information and exits with code 0 (currently missing required args shows usage but exits with code 1)
 - Additional service categories (Reddit, StackOverflow, Wikipedia, Tech News, News, etc.)
 - Subcommand support in bash version
 - Configuration file for custom service definitions
