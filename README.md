@@ -147,6 +147,25 @@ Select specific services to use:
 ./hunt shop -i "laptop"
 ```
 
+**Go version interactive mode flow:**
+
+When you run `./hunt -i` (no subcommand), you'll first see a category selection menu:
+
+```
+Select category:
+
+  1) Search Engines
+  2) Shopping Sites
+
+Enter category number:
+```
+
+After selecting a category, you'll see the service selection menu for that category.
+
+When you run `./hunt shop -i` (with subcommand), it skips category selection and goes directly to the service menu for that category.
+
+**Service selection menu:**
+
 When you run in interactive mode, you'll see a numbered list of services for the selected category:
 
 **Search Engines (default):**

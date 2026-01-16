@@ -601,10 +601,14 @@ See `tests/README.md` for detailed testing documentation.
 - ✅ Created `search_engines_legacy.json` for bash script compatibility (array structure)
 - ✅ Updated bash script to use legacy JSON file, maintaining working state
 - ✅ Enhanced interactive mode: category selection first, then service selection
+  - Two-step flow: category menu → service menu (when no subcommand)
+  - Single-step flow: service menu only (when subcommand provided)
 - ✅ Added 5 shopping sites (Amazon, eBay, Gazelle, Slick Deals, Swappa)
 - ✅ Subcommands parsed before flags for backward compatibility
 - ✅ Updated all tests to work with new category-based structure
 - ✅ Updated README with subcommand documentation
+- ✅ Updated PROJECT_CONTEXT.md with implementation details
+- ✅ Code formatting: added trailing newlines for consistency
 
 ### Go Port & CI/CD Implementation (Previous Sessions)
 - ✅ Implemented Go port with full feature parity to bash version
@@ -624,7 +628,7 @@ See `tests/README.md` for detailed testing documentation.
 - ✅ Added repository and development setup information
 
 ### Current Repository State
-- All changes are committed and pushed to `origin/main`
+- All changes are committed and pushed to `origin/main` (including latest formatting commit)
 - Repository is in sync with remote (https://github.com/aneely/hunt)
 - Working tree is clean
 - Git remote configured for HTTPS with GitHub CLI authentication
@@ -632,6 +636,7 @@ See `tests/README.md` for detailed testing documentation.
   - `search_engines.json` - Go version (category-based structure)
   - `search_engines_legacy.json` - Bash version (array structure)
 - Both implementations working and tested
+- All tests passing (Go: 47+ tests, Bash: 53+ tests)
 
 ### Important Context for Future Sessions
 - **Git Remote**: Uses HTTPS (not SSH) due to SSH key verification issues
@@ -647,6 +652,22 @@ See `tests/README.md` for detailed testing documentation.
   - Default behavior (no subcommand) uses `"search"` category
   - Interactive mode shows category selection first (unless subcommand provided)
   - Subcommands map to categories via `mapSubcommandToCategory()` function
+  - When subcommand provided (e.g., `hunt shop -i`), interactive mode skips category selection
+  - When no subcommand (`hunt -i`), interactive mode shows category menu first, then service menu
+  - Category selection uses `formatCategoryName()` to display user-friendly names (e.g., "Search Engines", "Shopping Sites")
+- **Interactive Mode Flow**:
+  - Step 1: Category selection (if no subcommand provided)
+    - Displays numbered list of available categories
+    - User selects category number
+  - Step 2: Service selection
+    - Displays numbered list of services in selected category
+    - Shows "0) All services" option
+    - User can select multiple services by number
+    - Returns selected engines as `[]SearchEngine` slice
+- **Exit Code Behavior**:
+  - Exit code 1 when search term is missing (shows usage message)
+  - Exit code 0 on successful execution
+  - Note: No `--help` flag currently implemented (could be added to show usage with exit 0)
 
 ## Next Steps
 
