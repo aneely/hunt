@@ -49,6 +49,17 @@
 4. Slick Deals
 5. Swappa
 
+**Tech News Sites (Go version - `technews`, `tech-news`, or `tech` subcommand):**
+1. Hacker News
+2. Lobste.rs
+3. Engadget
+4. The Verge
+
+**News Sites (Go version - `news` subcommand):**
+1. NPR
+2. NYT
+3. WSJ
+
 ## Technical Decisions & Constraints
 
 ### Dependency Philosophy
@@ -125,6 +136,15 @@
   # View details of most recent run
   gh run list --limit 1 --json databaseId --jq '.[0].databaseId' | xargs -I {} gh run view {} --json name,status,conclusion,jobs
   ```
+
+- **Go Binary Rebuild**: After completing any iteration that modifies Go code, always rebuild the binary to ensure it's up-to-date
+- **Rebuild Command**: `go build -o hunt .`
+- **Rationale**: The Go binary must be rebuilt after code changes for manual testing and to ensure the latest functionality is available. An out-of-date binary can cause confusion during testing and manual verification.
+- **When to Rebuild**:
+  - After modifying any `.go` source files
+  - After running tests (as a verification step)
+  - Before manual testing of new features
+  - Before committing changes (as a final verification)
 
 ### Git Operations - Destructive Changes Policy
 - **CRITICAL**: AI assistants working on this project must NOT commit destructive git changes without explicit user confirmation
@@ -331,9 +351,11 @@ hunt/
 
 ### Additional Service Categories (Not Yet Implemented)
 - **Crowd Source**: Reddit, StackOverflow, Wikipedia
-- **Tech News**: Hacker News, Lobste.rs, Engadget, The Verge
-- **News**: NPR, NYT, WSJ
-- **Shopping**: Amazon, eBay, Gazelle, Slick Deals, Swappa
+
+### Additional Service Categories (Completed)
+- ✅ **Tech News**: Hacker News, Lobste.rs, Engadget, The Verge
+- ✅ **News**: NPR, NYT, WSJ
+- ✅ **Shopping**: Amazon, eBay, Gazelle, Slick Deals, Swappa
 
 ### Potential Improvements
 1. **Additional Service Categories**: Add other service categories from `initial-sketch.md` (Reddit, StackOverflow, Wikipedia, etc.)
@@ -413,7 +435,7 @@ hunt/
   - macOS: `open` command
   - Linux: `xdg-open` command
   - Windows: `cmd /c start` command
-- Comprehensive test suite with 47 test cases covering unit and integration scenarios
+- Comprehensive test suite with 67+ test cases covering unit and integration scenarios
 - Test coverage: 33.3% overall, with core functions at 88-100% coverage
 
 ### GitHub Actions CI/CD Implementation
@@ -541,9 +563,11 @@ The project includes comprehensive test suites for both implementations:
   - `url_test.go` - URL encoding and construction tests (100% coverage)
   - `selection_test.go` - Service selection resolution and parsing tests (100% coverage)
   - `config_test.go` - JSON configuration loading tests (88.9% coverage)
+  - `main_test.go` - Subcommand mapping and category name formatting tests
 - **Integration Tests**: Test function interactions and full pipeline
-  - `integration_test.go` - Integration tests for URL construction, service selection, and URL building
+  - `integration_test.go` - Integration tests for URL construction, service selection, URL building, and new categories
 - **Test Coverage**: 33.3% overall (core functions have 88-100% coverage)
+- **Test Count**: 67+ test cases (up from 47)
 - **Standard Go testing**: Uses Go's built-in testing package, no external dependencies
 
 ### Running Tests
@@ -595,7 +619,17 @@ See `tests/README.md` for detailed testing documentation.
 
 ## Recent Work & Session Context
 
-### Subcommand & Category Support (Latest Session)
+### Tech News & News Categories (Latest Session)
+- ✅ Added `technews` and `news` service categories
+- ✅ Added 4 tech news sites (Hacker News, Lobste.rs, Engadget, The Verge)
+- ✅ Added 3 news sites (NPR, NYT, WSJ)
+- ✅ Support for `technews`, `tech-news`, `tech`, and `news` subcommands
+- ✅ Added comprehensive test coverage (20 new test cases, bringing total to 67+)
+- ✅ Created `main_test.go` with tests for subcommand mapping and category formatting
+- ✅ Updated all documentation (README.md, PROJECT_CONTEXT.md)
+- ✅ Rebuilt Go binary after code changes
+
+### Subcommand & Category Support (Previous Session)
 - ✅ Added subcommand support to Go version (`shop` subcommand for shopping sites)
 - ✅ Restructured JSON config to use category-based structure (outer keys for categories)
 - ✅ Created `search_engines_legacy.json` for bash script compatibility (array structure)
@@ -612,7 +646,7 @@ See `tests/README.md` for detailed testing documentation.
 
 ### Go Port & CI/CD Implementation (Previous Sessions)
 - ✅ Implemented Go port with full feature parity to bash version
-- ✅ Created comprehensive test suite (47+ test cases, 88-100% coverage on core functions)
+- ✅ Created comprehensive test suite (67+ test cases, 88-100% coverage on core functions)
 - ✅ Set up GitHub Actions CI/CD workflow for automated testing
 - ✅ Added development workflow documentation for GitHub Actions verification
 - ✅ Updated documentation (README.md, PROJECT_CONTEXT.md) for both implementations
@@ -636,7 +670,7 @@ See `tests/README.md` for detailed testing documentation.
   - `search_engines.json` - Go version (category-based structure)
   - `search_engines_legacy.json` - Bash version (array structure)
 - Both implementations working and tested
-- All tests passing (Go: 47+ tests, Bash: 53+ tests)
+- All tests passing (Go: 67+ tests, Bash: 53+ tests)
 
 ### Important Context for Future Sessions
 - **Git Remote**: Uses HTTPS (not SSH) due to SSH key verification issues
@@ -679,8 +713,8 @@ See `tests/README.md` for detailed testing documentation.
 6. ✅ ~~Enhance interactive mode with category selection~~ (Completed - Go version)
 7. Add other service categories from `initial-sketch.md`:
    - Crowd Source: Reddit, StackOverflow, Wikipedia
-   - Tech News: Hacker News, Lobste.rs, Engadget, The Verge
-   - News: NPR, NYT, WSJ
+   - ✅ Tech News: Hacker News, Lobste.rs, Engadget, The Verge (Completed)
+   - ✅ News: NPR, NYT, WSJ (Completed)
 8. Add subcommand support to bash version (currently Go-only)
 9. Improve error handling and user feedback
 10. Add service aliases for shorter names (e.g., `ddg` for DuckDuckGo)

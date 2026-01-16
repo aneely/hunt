@@ -33,6 +33,17 @@
 4. Slick Deals
 5. Swappa
 
+### Tech News Sites (Go version - use `technews` subcommand)
+1. Hacker News
+2. Lobste.rs
+3. Engadget
+4. The Verge
+
+### News Sites (Go version - use `news` subcommand)
+1. NPR
+2. NYT
+3. WSJ
+
 ## Requirements
 
 ### Bash Version
@@ -115,6 +126,22 @@ The Go version supports subcommands to search different categories of services. 
 # Searches across all shopping sites
 ```
 
+**Tech News Sites:**
+```bash
+./hunt technews "AI"
+# or
+./hunt tech-news "AI"
+# or
+./hunt tech "AI"
+# Searches across all tech news sites
+```
+
+**News Sites:**
+```bash
+./hunt news "election"
+# Searches across all news sites
+```
+
 Subcommands work with all existing flags:
 ```bash
 # Interactive mode with shopping sites
@@ -145,6 +172,12 @@ Select specific services to use:
 
 # Go version (shopping sites)
 ./hunt shop -i "laptop"
+
+# Go version (tech news sites)
+./hunt technews -i "AI"
+
+# Go version (news sites)
+./hunt news -i "election"
 ```
 
 **Go version interactive mode flow:**
@@ -156,6 +189,8 @@ Select category:
 
   1) Search Engines
   2) Shopping Sites
+  3) Tech News
+  4) News
 
 Enter category number:
 ```
@@ -195,6 +230,31 @@ Select services to use (enter numbers, separated by spaces):
   3) Gazelle
   4) Slick Deals
   5) Swappa
+
+Enter selection(s):
+```
+
+**Tech News Sites (with `technews` subcommand):**
+```
+Select services to use (enter numbers, separated by spaces):
+
+  0) All services
+  1) Hacker News
+  2) Lobste.rs
+  3) Engadget
+  4) The Verge
+
+Enter selection(s):
+```
+
+**News Sites (with `news` subcommand):**
+```
+Select services to use (enter numbers, separated by spaces):
+
+  0) All services
+  1) NPR
+  2) NYT
+  3) WSJ
 
 Enter selection(s):
 ```
@@ -246,6 +306,22 @@ You can specify services by:
 # Shopping sites - select by names
 ./hunt shop -s Amazon eBay "laptop"
 # Searches: Amazon and eBay
+
+# Tech news sites - select by numbers
+./hunt technews -s 1 3 "AI"
+# Searches: Hacker News (1), Engadget (3)
+
+# Tech news sites - select by names
+./hunt technews -s "Hacker News" "The Verge" "AI"
+# Searches: Hacker News and The Verge
+
+# News sites - select by numbers
+./hunt news -s 1 2 "election"
+# Searches: NPR (1), NYT (2)
+
+# News sites - select by names
+./hunt news -s NPR WSJ "election"
+# Searches: NPR and WSJ
 
 # Mix numbers and names
 ./hunt -s 1 Google 5 "machine learning"
@@ -302,6 +378,44 @@ You can specify services by:
 
 # Mix numbers and names
 ./hunt shop -s 1 eBay 3 "laptop"
+```
+
+**Tech News Sites (Go version):**
+```bash
+# Search all tech news sites
+./hunt technews "AI"
+
+# Interactive mode - select specific tech news sites
+./hunt technews -i "machine learning"
+
+# Services flag - select by numbers
+./hunt technews -s 1 3 "AI"
+# Searches: Hacker News (1), Engadget (3)
+
+# Services flag - select by names
+./hunt technews -s "Hacker News" "The Verge" "AI"
+
+# Mix numbers and names
+./hunt technews -s 1 "The Verge" 3 "AI"
+```
+
+**News Sites (Go version):**
+```bash
+# Search all news sites
+./hunt news "election"
+
+# Interactive mode - select specific news sites
+./hunt news -i "politics"
+
+# Services flag - select by numbers
+./hunt news -s 1 2 "election"
+# Searches: NPR (1), NYT (2)
+
+# Services flag - select by names
+./hunt news -s NPR WSJ "election"
+
+# Mix numbers and names
+./hunt news -s 1 WSJ "election"
 ```
 
 ## How It Works

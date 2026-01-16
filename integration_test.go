@@ -254,3 +254,170 @@ func TestIntegration_AllSelectionWithMultipleEngines(t *testing.T) {
 		t.Errorf("Built %d URLs, want %d", len(urls), len(engines))
 	}
 }
+
+// TestIntegration_NewCategories tests end-to-end functionality for technews and news categories
+func TestIntegration_NewCategories(t *testing.T) {
+	tmpDir := t.TempDir()
+	jsonPath := filepath.Join(tmpDir, "search_engines.json")
+
+	testJSON := `{
+		"technews": [
+			{"name": "Hacker News", "url": "https://hn.algolia.com/?q=", "space_delimiter": "+"},
+			{"name": "The Verge", "url": "https://www.theverge.com/search?q=", "space_delimiter": "%20"}
+		],
+		"news": [
+			{"name": "NPR", "url": "https://www.npr.org/search/?query=", "space_delimiter": "%20"},
+			{"name": "NYT", "url": "https://www.nytimes.com/search?query=", "space_delimiter": "+"}
+		]
+	}`
+
+	if err := os.WriteFile(jsonPath, []byte(testJSON), 0644); err != nil {
+		t.Fatalf("Failed to create test JSON file: %v", err)
+	}
+
+	oldDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Failed to get current directory: %v", err)
+	}
+	defer os.Chdir(oldDir)
+
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("Failed to change to temp directory: %v", err)
+	}
+
+	// Load config
+	config, err := LoadConfig()
+	if err != nil {
+		t.Fatalf("LoadConfig() error = %v", err)
+	}
+
+	// Test technews category
+	technewsEngines := config.GetEnginesByCategory("technews")
+	if len(technewsEngines) != 2 {
+		t.Fatalf("technews category has %d engines, want 2", len(technewsEngines))
+	}
+
+	searchTerm := "AI developments"
+	expectedTechnewsURLs := []string{
+		"https://hn.algolia.com/?q=AI+developments",
+		"https://www.theverge.com/search?q=AI%20developments",
+	}
+
+	for i, engine := range technewsEngines {
+		url := BuildSearchURL(engine, searchTerm)
+		if url != expectedTechnewsURLs[i] {
+			t.Errorf("technews BuildSearchURL(engine[%d], %q) = %q, want %q", i, searchTerm, url, expectedTechnewsURLs[i])
+		}
+	}
+
+	// Test news category
+	newsEngines := config.GetEnginesByCategory("news")
+	if len(newsEngines) != 2 {
+		t.Fatalf("news category has %d engines, want 2", len(newsEngines))
+	}
+
+	expectedNewsURLs := []string{
+		"https://www.npr.org/search/?query=AI%20developments",
+		"https://www.nytimes.com/search?query=AI+developments",
+	}
+
+	for i, engine := range newsEngines {
+		url := BuildSearchURL(engine, searchTerm)
+		if url != expectedNewsURLs[i] {
+			t.Errorf("news BuildSearchURL(engine[%d], %q) = %q, want %q", i, searchTerm, url, expectedNewsURLs[i])
+		}
+	}
+}
+
+// TestIntegration_NewCategoriesServiceSelection tests service selection for new categories
+func TestIntegration_NewCategoriesServiceSelection(t *testing.T) {
+	technewsEngines := []SearchEngine{
+		{Name: "Hacker News", URL: "https://hn.algolia.com/?q=", SpaceDelimiter: "+"},
+		{Name: "Lobste.rs", URL: "https://lobste.rs/search?q=", SpaceDelimiter: "+"},
+		{Name: "Engadget", URL: "https://search.engadget.com/search?p=", SpaceDelimiter: "+"},
+		{Name: "The Verge", URL: "https://www.theverge.com/search?q=", SpaceDelimiter: "%20"},
+	}
+
+	newsEngines := []SearchEngine{
+		{Name: "NPR", URL: "https://www.npr.org/search/?query=", SpaceDelimiter: "%20"},
+		{Name: "NYT", URL: "https://www.nytimes.com/search?query=", SpaceDelimiter: "+"},
+		{Name: "WSJ", URL: "https://www.wsj.com/search?query=", SpaceDelimiter: "%20"},
+	}
+
+	tests := []struct {
+		name        string
+		engines     []SearchEngine
+		selections  []string
+		searchTerm  string
+		wantEngines []string
+	}{
+		{
+			name:        "technews by numbers",
+			engines:     technewsEngines,
+			selections:  []string{"1", "3"},
+			searchTerm:  "test",
+			wantEngines: []string{"Hacker News", "Engadget"},
+		},
+		{
+			name:        "technews by names",
+			engines:     technewsEngines,
+			selections:  []string{"Hacker News", "The Verge"},
+			searchTerm:  "test query",
+			wantEngines: []string{"Hacker News", "The Verge"},
+		},
+		{
+			name:        "news by numbers",
+			engines:     newsEngines,
+			selections:  []string{"2", "3"},
+			searchTerm:  "test",
+			wantEngines: []string{"NYT", "WSJ"},
+		},
+		{
+			name:        "news by names",
+			engines:     newsEngines,
+			selections:  []string{"NPR", "WSJ"},
+			searchTerm:  "test query",
+			wantEngines: []string{"NPR", "WSJ"},
+		},
+		{
+			name:        "technews select all",
+			engines:     technewsEngines,
+			selections:  []string{"all"},
+			searchTerm:  "test",
+			wantEngines: []string{"Hacker News", "Lobste.rs", "Engadget", "The Verge"},
+		},
+		{
+			name:        "news select all",
+			engines:     newsEngines,
+			selections:  []string{"0"},
+			searchTerm:  "test",
+			wantEngines: []string{"NPR", "NYT", "WSJ"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			indices, err := ParseSelections(tt.selections, tt.engines)
+			if err != nil {
+				t.Fatalf("ParseSelections() error = %v", err)
+			}
+
+			if len(indices) != len(tt.wantEngines) {
+				t.Fatalf("ParseSelections() returned %d indices, want %d", len(indices), len(tt.wantEngines))
+			}
+
+			// Verify engine names
+			for i, idx := range indices {
+				if tt.engines[idx].Name != tt.wantEngines[i] {
+					t.Errorf("Engine[%d] = %q, want %q", i, tt.engines[idx].Name, tt.wantEngines[i])
+				}
+
+				// Verify URL construction
+				url := BuildSearchURL(tt.engines[idx], tt.searchTerm)
+				if !strings.HasPrefix(url, tt.engines[idx].URL) {
+					t.Errorf("URL[%d] = %q, should start with %q", i, url, tt.engines[idx].URL)
+				}
+			}
+		})
+	}
+}

@@ -184,6 +184,10 @@ func mapSubcommandToCategory(subcommand string) string {
 		return "shop"
 	case "search":
 		return "search"
+	case "technews", "tech-news", "tech":
+		return "technews"
+	case "news":
+		return "news"
 	default:
 		return ""
 	}
@@ -325,6 +329,10 @@ func formatCategoryName(category string) string {
 		return "Search Engines"
 	case "shop":
 		return "Shopping Sites"
+	case "technews":
+		return "Tech News"
+	case "news":
+		return "News"
 	default:
 		// Capitalize first letter and add "s" if needed
 		if len(category) == 0 {
@@ -340,10 +348,14 @@ func printUsage() {
 	fmt.Fprintf(os.Stderr, "Subcommands:\n")
 	fmt.Fprintf(os.Stderr, "  (none)                   Search across search engines (default)\n")
 	fmt.Fprintf(os.Stderr, "  shop                     Search across shopping sites\n")
+	fmt.Fprintf(os.Stderr, "  technews                 Search across tech news sites\n")
+	fmt.Fprintf(os.Stderr, "  news                     Search across news sites\n")
 	fmt.Fprintf(os.Stderr, "\n")
 	fmt.Fprintf(os.Stderr, "Examples:\n")
 	fmt.Fprintf(os.Stderr, "  %s 'machine learning'\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "  %s shop 'laptop'\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "  %s technews 'AI'\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "  %s news 'election'\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "  %s -i 'machine learning'\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "  %s shop -i 'laptop'\n", os.Args[0])
 	fmt.Fprintf(os.Stderr, "  %s -s 1 3 5 'machine learning'\n", os.Args[0])

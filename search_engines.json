@@ -67,5 +67,44 @@
       "url": "https://swappa.com/search?q=",
       "space_delimiter": "%20"
     }
+  ],
+  "technews": [
+    {
+      "name": "Hacker News",
+      "url": "https://hn.algolia.com/?q=",
+      "space_delimiter": "+"
+    },
+    {
+      "name": "Lobste.rs",
+      "url": "https://lobste.rs/search?q=",
+      "space_delimiter": "+"
+    },
+    {
+      "name": "Engadget",
+      "url": "https://search.engadget.com/search?p=",
+      "space_delimiter": "+"
+    },
+    {
+      "name": "The Verge",
+      "url": "https://www.theverge.com/search?q=",
+      "space_delimiter": "%20"
+    }
+  ],
+  "news": [
+    {
+      "name": "NPR",
+      "url": "https://www.npr.org/search/?query=",
+      "space_delimiter": "%20"
+    },
+    {
+      "name": "NYT",
+      "url": "https://www.nytimes.com/search?query=",
+      "space_delimiter": "+"
+    },
+    {
+      "name": "WSJ",
+      "url": "https://www.wsj.com/search?query=",
+      "space_delimiter": "%20"
+    }
   ]
 }
