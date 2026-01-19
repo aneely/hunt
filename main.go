@@ -4,12 +4,21 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
 )
 
 func main() {
+	// Check for help flag first
+	for _, arg := range os.Args[1:] {
+		if arg == "-h" || arg == "--help" {
+			printUsage(os.Stdout)
+			os.Exit(0)
+		}
+	}
+
 	// Check for subcommand BEFORE parsing flags (for backward compatibility)
 	// Subcommands come before flags: hunt shop -i "laptop"
 	var category string
@@ -94,7 +103,7 @@ func main() {
 
 	// Validate search term
 	if searchTerm == "" {
-		printUsage()
+		printUsage(os.Stderr)
 		os.Exit(1)
 	}
 
@@ -342,27 +351,28 @@ func formatCategoryName(category string) string {
 	}
 }
 
-func printUsage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s [SUBCOMMAND] [-i|--interactive] [-s|--services SELECTION ...] <search term>\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "\n")
-	fmt.Fprintf(os.Stderr, "Subcommands:\n")
-	fmt.Fprintf(os.Stderr, "  (none)                   Search across search engines (default)\n")
-	fmt.Fprintf(os.Stderr, "  shop                     Search across shopping sites\n")
-	fmt.Fprintf(os.Stderr, "  technews                 Search across tech news sites\n")
-	fmt.Fprintf(os.Stderr, "  news                     Search across news sites\n")
-	fmt.Fprintf(os.Stderr, "\n")
-	fmt.Fprintf(os.Stderr, "Examples:\n")
-	fmt.Fprintf(os.Stderr, "  %s 'machine learning'\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "  %s shop 'laptop'\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "  %s technews 'AI'\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "  %s news 'election'\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "  %s -i 'machine learning'\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "  %s shop -i 'laptop'\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "  %s -s 1 3 5 'machine learning'\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "  %s shop -s 1 3 'laptop'\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "  %s -s Bing Google Mojeek 'machine learning'\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "\n")
-	fmt.Fprintf(os.Stderr, "Options:\n")
-	fmt.Fprintf(os.Stderr, "  -i, --interactive         Interactive mode to select services\n")
-	fmt.Fprintf(os.Stderr, "  -s, --services SELECTION Specify services by number (0 for all, 1-N for services) or name\n")
+func printUsage(w io.Writer) {
+	fmt.Fprintf(w, "Usage: %s [SUBCOMMAND] [-i|--interactive] [-s|--services SELECTION ...] <search term>\n", os.Args[0])
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "Subcommands:\n")
+	fmt.Fprintf(w, "  (none)                   Search across search engines (default)\n")
+	fmt.Fprintf(w, "  shop                     Search across shopping sites\n")
+	fmt.Fprintf(w, "  technews                 Search across tech news sites\n")
+	fmt.Fprintf(w, "  news                     Search across news sites\n")
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "Examples:\n")
+	fmt.Fprintf(w, "  %s 'machine learning'\n", os.Args[0])
+	fmt.Fprintf(w, "  %s shop 'laptop'\n", os.Args[0])
+	fmt.Fprintf(w, "  %s technews 'AI'\n", os.Args[0])
+	fmt.Fprintf(w, "  %s news 'election'\n", os.Args[0])
+	fmt.Fprintf(w, "  %s -i 'machine learning'\n", os.Args[0])
+	fmt.Fprintf(w, "  %s shop -i 'laptop'\n", os.Args[0])
+	fmt.Fprintf(w, "  %s -s 1 3 5 'machine learning'\n", os.Args[0])
+	fmt.Fprintf(w, "  %s shop -s 1 3 'laptop'\n", os.Args[0])
+	fmt.Fprintf(w, "  %s -s Bing Google Mojeek 'machine learning'\n", os.Args[0])
+	fmt.Fprintf(w, "\n")
+	fmt.Fprintf(w, "Options:\n")
+	fmt.Fprintf(w, "  -h, --help                Show this help message and exit\n")
+	fmt.Fprintf(w, "  -i, --interactive         Interactive mode to select services\n")
+	fmt.Fprintf(w, "  -s, --services SELECTION  Specify services by number (0 for all, 1-N for services) or name\n")
 }

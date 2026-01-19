@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"strings"
 	"testing"
 )
 
@@ -115,6 +117,59 @@ func TestFormatCategoryName(t *testing.T) {
 			got := formatCategoryName(tt.category)
 			if got != tt.want {
 				t.Errorf("formatCategoryName(%q) = %q, want %q", tt.category, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPrintUsage(t *testing.T) {
+	tests := []struct {
+		name             string
+		wantContains     []string
+		wantNotContains  []string
+	}{
+		{
+			name: "contains usage information",
+			wantContains: []string{
+				"Usage:",
+				"Subcommands:",
+				"shop",
+				"technews",
+				"news",
+				"Examples:",
+				"Options:",
+				"-h, --help",
+				"-i, --interactive",
+				"-s, --services",
+			},
+			wantNotContains: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Capture output using a buffer
+			var buf bytes.Buffer
+			printUsage(&buf)
+			output := buf.String()
+
+			// Check that all expected strings are present
+			for _, want := range tt.wantContains {
+				if !strings.Contains(output, want) {
+					t.Errorf("printUsage() output missing %q", want)
+				}
+			}
+
+			// Check that unwanted strings are not present
+			for _, unwanted := range tt.wantNotContains {
+				if strings.Contains(output, unwanted) {
+					t.Errorf("printUsage() output contains unwanted string %q", unwanted)
+				}
+			}
+
+			// Verify output is not empty
+			if len(output) == 0 {
+				t.Error("printUsage() produced empty output")
 			}
 		})
 	}
