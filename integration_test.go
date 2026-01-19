@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -416,6 +417,109 @@ func TestIntegration_NewCategoriesServiceSelection(t *testing.T) {
 				url := BuildSearchURL(tt.engines[idx], tt.searchTerm)
 				if !strings.HasPrefix(url, tt.engines[idx].URL) {
 					t.Errorf("URL[%d] = %q, should start with %q", i, url, tt.engines[idx].URL)
+				}
+			}
+		})
+	}
+}
+
+// TestIntegration_ExitCodes tests that the binary exits with correct exit codes
+// for different scenarios (help flags, missing arguments, etc.)
+func TestIntegration_ExitCodes(t *testing.T) {
+	// Build the binary for testing
+	tmpDir := t.TempDir()
+	binaryPath := filepath.Join(tmpDir, "hunt-test")
+
+	// Build command
+	buildCmd := exec.Command("go", "build", "-o", binaryPath, ".")
+	if output, err := buildCmd.CombinedOutput(); err != nil {
+		t.Fatalf("Failed to build binary: %v\nOutput: %s", err, output)
+	}
+
+	// Create a minimal search_engines.json in the test directory
+	jsonPath := filepath.Join(tmpDir, "search_engines.json")
+	testJSON := `{
+		"search": [
+			{"name": "Test", "url": "https://test.com/search?q=", "space_delimiter": "+"}
+		]
+	}`
+	if err := os.WriteFile(jsonPath, []byte(testJSON), 0644); err != nil {
+		t.Fatalf("Failed to create test JSON file: %v", err)
+	}
+
+	tests := []struct {
+		name           string
+		args           []string
+		wantExitCode   int
+		wantInStdout   []string
+		wantInStderr   []string
+	}{
+		{
+			name:         "help flag --help exits with 0",
+			args:         []string{"--help"},
+			wantExitCode: 0,
+			wantInStdout: []string{"Usage:", "Options:", "-h, --help"},
+			wantInStderr: []string{},
+		},
+		{
+			name:         "help flag -h exits with 0",
+			args:         []string{"-h"},
+			wantExitCode: 0,
+			wantInStdout: []string{"Usage:", "Options:", "-h, --help"},
+			wantInStderr: []string{},
+		},
+		{
+			name:         "no arguments exits with 1",
+			args:         []string{},
+			wantExitCode: 1,
+			wantInStdout: []string{},
+			wantInStderr: []string{"Usage:"},
+		},
+		{
+			name:         "help flag with subcommand exits with 0",
+			args:         []string{"shop", "--help"},
+			wantExitCode: 0,
+			wantInStdout: []string{"Usage:", "shop"},
+			wantInStderr: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Run the binary with the given args
+			cmd := exec.Command(binaryPath, tt.args...)
+			cmd.Dir = tmpDir // Set working directory so it finds search_engines.json
+
+			output, err := cmd.CombinedOutput()
+			outputStr := string(output)
+
+			// Get exit code
+			exitCode := 0
+			if err != nil {
+				if exitErr, ok := err.(*exec.ExitError); ok {
+					exitCode = exitErr.ExitCode()
+				} else {
+					t.Fatalf("Failed to run command: %v", err)
+				}
+			}
+
+			// Check exit code
+			if exitCode != tt.wantExitCode {
+				t.Errorf("Exit code = %d, want %d\nOutput: %s", exitCode, tt.wantExitCode, outputStr)
+			}
+
+			// Check stdout content (note: CombinedOutput mixes stdout and stderr)
+			for _, want := range tt.wantInStdout {
+				if !strings.Contains(outputStr, want) {
+					t.Errorf("Output missing expected string %q\nGot: %s", want, outputStr)
+				}
+			}
+
+			// For stderr checks, we can verify the expected strings are present
+			// (CombinedOutput includes both, so we check the same way)
+			for _, want := range tt.wantInStderr {
+				if !strings.Contains(outputStr, want) {
+					t.Errorf("Output missing expected error string %q\nGot: %s", want, outputStr)
 				}
 			}
 		})
