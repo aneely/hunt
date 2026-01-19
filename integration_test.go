@@ -424,7 +424,8 @@ func TestIntegration_NewCategoriesServiceSelection(t *testing.T) {
 }
 
 // TestIntegration_ExitCodes tests that the binary exits with correct exit codes
-// for different scenarios (help flags, missing arguments, etc.)
+// for different scenarios (help flags, missing arguments, etc.) and verifies
+// that output is routed to the correct stream (stdout vs stderr).
 func TestIntegration_ExitCodes(t *testing.T) {
 	// Build the binary for testing
 	tmpDir := t.TempDir()
@@ -455,28 +456,28 @@ func TestIntegration_ExitCodes(t *testing.T) {
 		wantInStderr   []string
 	}{
 		{
-			name:         "help flag --help exits with 0",
+			name:         "help flag --help exits with 0 and writes to stdout",
 			args:         []string{"--help"},
 			wantExitCode: 0,
 			wantInStdout: []string{"Usage:", "Options:", "-h, --help"},
 			wantInStderr: []string{},
 		},
 		{
-			name:         "help flag -h exits with 0",
+			name:         "help flag -h exits with 0 and writes to stdout",
 			args:         []string{"-h"},
 			wantExitCode: 0,
 			wantInStdout: []string{"Usage:", "Options:", "-h, --help"},
 			wantInStderr: []string{},
 		},
 		{
-			name:         "no arguments exits with 1",
+			name:         "no arguments exits with 1 and writes to stderr",
 			args:         []string{},
 			wantExitCode: 1,
 			wantInStdout: []string{},
 			wantInStderr: []string{"Usage:"},
 		},
 		{
-			name:         "help flag with subcommand exits with 0",
+			name:         "help flag with subcommand exits with 0 and writes to stdout",
 			args:         []string{"shop", "--help"},
 			wantExitCode: 0,
 			wantInStdout: []string{"Usage:", "shop"},
@@ -490,8 +491,12 @@ func TestIntegration_ExitCodes(t *testing.T) {
 			cmd := exec.Command(binaryPath, tt.args...)
 			cmd.Dir = tmpDir // Set working directory so it finds search_engines.json
 
-			output, err := cmd.CombinedOutput()
-			outputStr := string(output)
+			// Capture stdout and stderr separately
+			var stdout, stderr strings.Builder
+			cmd.Stdout = &stdout
+			cmd.Stderr = &stderr
+
+			err := cmd.Run()
 
 			// Get exit code
 			exitCode := 0
@@ -503,24 +508,57 @@ func TestIntegration_ExitCodes(t *testing.T) {
 				}
 			}
 
+			stdoutStr := stdout.String()
+			stderrStr := stderr.String()
+
 			// Check exit code
 			if exitCode != tt.wantExitCode {
-				t.Errorf("Exit code = %d, want %d\nOutput: %s", exitCode, tt.wantExitCode, outputStr)
+				t.Errorf("Exit code = %d, want %d\nStdout: %s\nStderr: %s",
+					exitCode, tt.wantExitCode, stdoutStr, stderrStr)
 			}
 
-			// Check stdout content (note: CombinedOutput mixes stdout and stderr)
+			// Check stdout content
 			for _, want := range tt.wantInStdout {
-				if !strings.Contains(outputStr, want) {
-					t.Errorf("Output missing expected string %q\nGot: %s", want, outputStr)
+				if !strings.Contains(stdoutStr, want) {
+					t.Errorf("Stdout missing expected string %q\nGot: %s", want, stdoutStr)
 				}
 			}
 
-			// For stderr checks, we can verify the expected strings are present
-			// (CombinedOutput includes both, so we check the same way)
-			for _, want := range tt.wantInStderr {
-				if !strings.Contains(outputStr, want) {
-					t.Errorf("Output missing expected error string %q\nGot: %s", want, outputStr)
+			// Verify stdout doesn't contain content meant for stderr
+			if len(tt.wantInStderr) > 0 && len(tt.wantInStdout) > 0 {
+				// If we expect stderr content, stdout should not contain it
+				for _, stderrContent := range tt.wantInStderr {
+					if strings.Contains(stdoutStr, stderrContent) {
+						t.Errorf("Stdout incorrectly contains stderr content %q\nStdout: %s",
+							stderrContent, stdoutStr)
+					}
 				}
+			}
+
+			// Check stderr content
+			for _, want := range tt.wantInStderr {
+				if !strings.Contains(stderrStr, want) {
+					t.Errorf("Stderr missing expected string %q\nGot: %s", want, stderrStr)
+				}
+			}
+
+			// Verify stderr doesn't contain content meant for stdout
+			if len(tt.wantInStdout) > 0 && len(tt.wantInStderr) > 0 {
+				// If we expect stdout content, stderr should not contain it
+				for _, stdoutContent := range tt.wantInStdout {
+					if strings.Contains(stderrStr, stdoutContent) {
+						t.Errorf("Stderr incorrectly contains stdout content %q\nStderr: %s",
+							stdoutContent, stderrStr)
+					}
+				}
+			}
+
+			// Verify expected empty streams are actually empty
+			if len(tt.wantInStdout) == 0 && stdoutStr != "" {
+				t.Errorf("Expected empty stdout, got: %s", stdoutStr)
+			}
+			if len(tt.wantInStderr) == 0 && stderrStr != "" {
+				t.Errorf("Expected empty stderr, got: %s", stderrStr)
 			}
 		})
 	}
