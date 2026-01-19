@@ -23,7 +23,7 @@ func TestIntegration_URLConstructionAndEncoding(t *testing.T) {
 		]
 	}`
 
-	if err := os.WriteFile(jsonPath, []byte(testJSON), 0644); err != nil {
+	if err := os.WriteFile(jsonPath, []byte(testJSON), 0444); err != nil {
 		t.Fatalf("Failed to create test JSON file: %v", err)
 	}
 
@@ -272,7 +272,7 @@ func TestIntegration_NewCategories(t *testing.T) {
 		]
 	}`
 
-	if err := os.WriteFile(jsonPath, []byte(testJSON), 0644); err != nil {
+	if err := os.WriteFile(jsonPath, []byte(testJSON), 0444); err != nil {
 		t.Fatalf("Failed to create test JSON file: %v", err)
 	}
 
@@ -444,7 +444,7 @@ func TestIntegration_ExitCodes(t *testing.T) {
 			{"name": "Test", "url": "https://test.com/search?q=", "space_delimiter": "+"}
 		]
 	}`
-	if err := os.WriteFile(jsonPath, []byte(testJSON), 0644); err != nil {
+	if err := os.WriteFile(jsonPath, []byte(testJSON), 0444); err != nil {
 		t.Fatalf("Failed to create test JSON file: %v", err)
 	}
 
