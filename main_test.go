@@ -124,9 +124,8 @@ func TestFormatCategoryName(t *testing.T) {
 
 func TestPrintUsage(t *testing.T) {
 	tests := []struct {
-		name             string
-		wantContains     []string
-		wantNotContains  []string
+		name         string
+		wantContains []string
 	}{
 		{
 			name: "contains usage information",
@@ -142,7 +141,6 @@ func TestPrintUsage(t *testing.T) {
 				"-i, --interactive",
 				"-s, --services",
 			},
-			wantNotContains: []string{},
 		},
 	}
 
@@ -157,13 +155,6 @@ func TestPrintUsage(t *testing.T) {
 			for _, want := range tt.wantContains {
 				if !strings.Contains(output, want) {
 					t.Errorf("printUsage() output missing %q", want)
-				}
-			}
-
-			// Check that unwanted strings are not present
-			for _, unwanted := range tt.wantNotContains {
-				if strings.Contains(output, unwanted) {
-					t.Errorf("printUsage() output contains unwanted string %q", unwanted)
 				}
 			}
 
