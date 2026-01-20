@@ -51,7 +51,7 @@
 - Bash 3.2+ (default on macOS)
 
 ### Go Version
-- Go 1.21+ (for building from source)
+- Go 1.24+ (for building from source)
 - Cross-platform: macOS, Linux, Windows
 - Single binary - no runtime dependencies
 
@@ -450,6 +450,7 @@ hunt/
 ├── search_engines.json  # Search engine definitions
 ├── README.md            # This file
 ├── PROJECT_CONTEXT.md   # Detailed project documentation
+├── CLAUDE.md            # AI assistant instructions
 ├── initial-sketch.md   # Original project specification
 ├── LICENSE              # MIT License
 ├── .gitignore          # Git ignore patterns
@@ -510,8 +511,8 @@ See `tests/README.md` for detailed bash testing documentation.
 Planned features (see `PROJECT_CONTEXT.md` for details):
 
 - ✅ **Subcommands**: Completed! Go version now supports subcommands for different service categories
-- **Help Flag**: Add `--help`/`-h` flag that displays usage information and exits with code 0 (currently missing required args shows usage but exits with code 1)
-- Additional service categories (Reddit, StackOverflow, Wikipedia, Tech News, News, etc.)
+- ✅ **Help Flag**: Completed! `--help`/`-h` flag displays usage information and exits with code 0
+- Additional service categories (Reddit, StackOverflow, Wikipedia)
 - Subcommand support in bash version
 - Configuration file for custom service definitions
 - Browser detection and optimization
@@ -532,7 +533,7 @@ Planned features (see `PROJECT_CONTEXT.md` for details):
 - **Bash version**: Ensure the script is executable: `chmod +x hunt.sh`
 - **Bash version**: Verify you're on macOS (the `open` command is macOS-specific)
 - **Bash version**: Check that standard Unix utilities are available (`od` command for URL encoding)
-- **Go version**: Ensure Go is installed (1.21+) if building from source
+- **Go version**: Ensure Go is installed (1.24+) if building from source
 - **Go version**: Verify `search_engines.json` is in the same directory as the binary
 
 ## License

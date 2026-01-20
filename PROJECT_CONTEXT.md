@@ -225,6 +225,7 @@ hunt/
 ├── search_engines_legacy.json  # Bash version - Array-based service definitions (legacy structure)
 ├── README.md                     # User-facing documentation
 ├── PROJECT_CONTEXT.md            # This file - project documentation
+├── CLAUDE.md                     # AI assistant instructions for PR review
 ├── initial-sketch.md             # Original project specification with all service examples
 ├── LICENSE                       # MIT License
 ├── .gitignore                   # Git ignore patterns for OS and editor files
@@ -435,8 +436,8 @@ hunt/
   - macOS: `open` command
   - Linux: `xdg-open` command
   - Windows: `cmd /c start` command
-- Comprehensive test suite with 67+ test cases covering unit and integration scenarios
-- Test coverage: 33.3% overall, with core functions at 88-100% coverage
+- Comprehensive test suite covering unit and integration scenarios
+- Test coverage: 37.6% overall, with core functions at 88-100% coverage
 
 ### GitHub Actions CI/CD Implementation
 - Created GitHub Actions workflow (`.github/workflows/tests.yml`)
@@ -512,7 +513,7 @@ Examples:
   - The test suite uses a custom, dependency-free bash framework
   - No external tools or libraries needed
   - Pure bash implementation for maximum portability
-- **Go version**: Go 1.21+ required for building and testing
+- **Go version**: Go 1.24+ required for building and testing
   - Standard library only - no external dependencies
   - Uses Go's built-in testing package
   - Cross-platform development supported
@@ -566,8 +567,8 @@ The project includes comprehensive test suites for both implementations:
   - `main_test.go` - Subcommand mapping and category name formatting tests
 - **Integration Tests**: Test function interactions and full pipeline
   - `integration_test.go` - Integration tests for URL construction, service selection, URL building, and new categories
-- **Test Coverage**: 33.3% overall (core functions have 88-100% coverage)
-- **Test Count**: 67+ test cases (up from 47)
+- **Test Coverage**: 37.6% overall (core functions have 88-100% coverage)
+- **Test Count**: Comprehensive unit and integration test suites
 - **Standard Go testing**: Uses Go's built-in testing package, no external dependencies
 
 ### Running Tests
@@ -619,12 +620,20 @@ See `tests/README.md` for detailed testing documentation.
 
 ## Recent Work & Session Context
 
-### Tech News & News Categories (Latest Session)
+### Help Flag & Testing Improvements (Latest Session)
+- ✅ Added `--help`/`-h` flag support (exits with code 0)
+- ✅ Added integration tests for exit code behavior
+- ✅ Updated Go version requirement to 1.24.7 for compatibility
+- ✅ Improved test reliability with read-only permissions (0444) for test data files
+- ✅ Simplified TestPrintUsage test structure
+- ✅ Added CLAUDE.md for AI-assisted PR review guidance
+
+### Tech News & News Categories (Previous Session)
 - ✅ Added `technews` and `news` service categories
 - ✅ Added 4 tech news sites (Hacker News, Lobste.rs, Engadget, The Verge)
 - ✅ Added 3 news sites (NPR, NYT, WSJ)
 - ✅ Support for `technews`, `tech-news`, `tech`, and `news` subcommands
-- ✅ Added comprehensive test coverage (20 new test cases, bringing total to 67+)
+- ✅ Added comprehensive test coverage
 - ✅ Created `main_test.go` with tests for subcommand mapping and category formatting
 - ✅ Updated all documentation (README.md, PROJECT_CONTEXT.md)
 - ✅ Rebuilt Go binary after code changes
@@ -701,7 +710,7 @@ See `tests/README.md` for detailed testing documentation.
 - **Exit Code Behavior**:
   - Exit code 1 when search term is missing (shows usage message)
   - Exit code 0 on successful execution
-  - Note: No `--help` flag currently implemented (could be added to show usage with exit 0)
+  - `--help`/`-h` flag shows usage and exits with code 0
 
 ## Next Steps
 
